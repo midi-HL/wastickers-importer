@@ -63,6 +63,7 @@ jobs:
       - name: Gradle lint, unit tests, debug and release APKs
         run: |
           chmod +x ./gradlew
+          VERSION_NAME="${VERSION_NAME#v}"
           ./gradlew --no-daemon --stacktrace \
             -PVERSION_NAME="$VERSION_NAME" -PVERSION_CODE="$VERSION_CODE" \
             lint test assembleDebug assembleRelease

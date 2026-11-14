@@ -61,7 +61,7 @@ Telegram 机器人（如 `@tgtowabot`）和 sticker-convert 等工具可以把�
 
 设计语言参考开源项目 Kazumi 的 Material You 信息架构与交互规范，但**没有复制其任何代码、图标、字体或美术素材**（Kazumi 为 GPL-3.0）。本项目仍是原生 Kotlin + View + Material Components for Android 1.12.0：
 
-- Android 12+ 通过 `DynamicColors.applyToActivitiesIfAvailable` 跟随系统壁纸动态取色；三档深色模式在动态取色下同样生效；关闭动态取色或低版本回退到内置 MD3 种子色（设置页 6 档可选）。
+- Android 12+ 通过 `DynamicColors.applyToActivitiesIfAvailable` 跟随系统壁纸动态取色；三档深色模式在动态取色下同样生效；关闭动态取色或低版本回退到内置 MD3 种子色（设置页 6 档可选）。设置页底部的「关于」卡片列出作者 midi-HL、仓库地址、版本与许可摘要。
 - 主页可折叠大标题、surface/surfaceContainer 色阶卡片列表、Extended FAB、MD3 空状态；预览页大托盘信息卡 + 圆角贴纸网格 + 底部固定主按钮。
 - 入场 stagger、涟漪/状态层、CircularProgressIndicator、Snackbar、成功按钮切「已添加」；系统「移除动画」时自动降级为直接切换；可点元素 ≥48dp，图标按钮有 contentDescription。
 - 原创自适应图标 + Android 13+ 单色主题图标；中英双语字符串。
@@ -165,6 +165,6 @@ base64 -w 0 "$HOME/release.jks" | xclip -selection clipboard
 
 ## 10. 许可证与上游署名
 
-- 本项目代码：MIT，见 `LICENSE`。
+- 本项目原创代码：MIT 基础上附加「必须署名作者 midi-HL 与本仓库、禁止付费分发」条款，见 `LICENSE`；可自由使用、复制、修改与免费再分发。修改版 app 的「关于」页必须保留作者与仓库地址。
 - 上游 WhatsApp Stickers Android 示例：BSD，ContentProvider 与导入契约按其当前实现（commit `06144a1f`，2025-11-07）移植；全文见 `UPSTREAM-LICENSE-BSD.txt`，署名见 `NOTICE`。
 - Kazumi 仅作为 Material You 视觉/交互设计语言参考，未包含其代码或素材；WhatsApp / Telegram 名称仅用于说明兼容性，图标与图形均为原创几何贴纸/纸张意象。

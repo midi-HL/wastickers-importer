@@ -58,4 +58,9 @@
     <string name="hint_tray">Tray icon must be a 96×96 PNG under 50 KB. Regenerate the pack.</string>
     <string name="hint_webp">A sticker is not WebP. Re-export with sticker-convert.</string>
     <string name="content_provider_label">Sticker pack content</string>
+    <string name="about_title">About</string>
+    <string name="about_author">Author / copyright: midi-HL</string>
+    <string name="about_repository">Repository: https://github.com/midi-HL/wastickers-importer</string>
+    <string name="about_version">Version: %1$s</string>
+    <string name="about_license">License: use and modify the source freely. Any modification or redistribution must credit midi-HL and keep this repository URL, and paid distribution is prohibited. Third-party components keep their own licenses; see LICENSE and NOTICE.</string>
 </resources>

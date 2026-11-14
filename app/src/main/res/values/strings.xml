@@ -58,4 +58,9 @@
     <string name="hint_tray">托盘图标不符合 96×96 PNG / 50 KB 规格：请用转换工具重新生成包。</string>
     <string name="hint_webp">有图片不是 WebP：请用 sticker-convert 重新导出为 WebP 贴纸包。</string>
     <string name="content_provider_label">贴纸包内容</string>
+    <string name="about_title">关于</string>
+    <string name="about_author">作者 / 版权：midi-HL</string>
+    <string name="about_repository">开源仓库：https://github.com/midi-HL/wastickers-importer</string>
+    <string name="about_version">版本：%1$s</string>
+    <string name="about_license">许可：可自由使用与修改源代码；修改或分发时必须署名作者 midi-HL 并保留本仓库地址，禁止以任何对价付费分发。第三方组件仍适用各自原许可，详见 LICENSE 与 NOTICE。</string>
 </resources>

@@ -33,5 +33,17 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The full upstream BSD license text is reproduced in UPSTREAM-LICENSE-BSD.txt.
+AndroidX and Material Components for Android dependencies are distributed
+under the Apache License 2.0; their own notices and license text govern those
+components. The additional attribution / no-paid-distribution conditions in
+this project's LICENSE apply only to this project's original portions, and do
+not modify the licenses of these third-party components.
+
 No WhatsApp, Telegram, or Kazumi artwork, icons, fonts, or source code is
 included. Kazumi is referenced only as a visual design-language benchmark.
+
+Original project author: midi-HL
+Original repository: https://github.com/midi-HL/wastickers-importer
+Modified versions must keep this author and repository attribution visible in
+their About screen and documentation. Paid distribution of the Software or a
+modified version is not permitted; see LICENSE for the complete terms.

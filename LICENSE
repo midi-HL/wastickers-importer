@@ -1,16 +1,64 @@
-MIT License
+MIT License with attribution and non-commercial distribution terms
+（MIT 许可证，附加署名与禁止付费分发条款）
 
 Copyright (c) 2026 midi-HL
+Repository: https://github.com/midi-HL/wastickers-importer
+
+本项目的原创部分（不含 NOTICE / UPSTREAM-LICENSE-BSD.txt 所列第三方组件）
+采用以下条款。中文说明与英文条款具有同等解释力；若两者语义冲突，以中文说明为准。
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+to use, copy, modify, merge, publish and distribute copies of the Software,
+and to permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. Attribution and repository notice / 署名与仓库标注
+
+   The above copyright notice, this permission notice, and the repository URL
+   `https://github.com/midi-HL/wastickers-importer` shall be included in all
+   copies or substantial portions of the Software, in the About screen of any
+   modified app, and in the documentation of any redistributed build.
+
+   任何源码副本、二进制分发、修改版 app 的「关于」页面以及随附文档中，
+   必须保留版权声明、本许可声明、作者 `midi-HL` 与仓库地址
+   `https://github.com/midi-HL/wastickers-importer`。修改版可以追加自己的
+   贡献者说明，但不得移除或隐藏上述署名。
+
+2. No paid distribution / 禁止付费分发
+
+   Charging a price, fee, subscription, in-app purchase, paywall, donation
+   gate, or any other consideration as a condition of receiving, copying,
+   accessing or distributing the Software or a modified version of it is not
+   permitted. Free-of-charge redistribution, including redistribution through
+   free app stores, mirrors, source forks and open-source bundles, is allowed.
+
+   不得以售价、订阅、内购、付费墙、强制捐赠门槛或任何其它对价作为提供、
+   复制、访问、分发本软件或修改版的条件。免费再分发（包括免费应用商店、
+   镜像、源码 fork 与开源合集）允许。托管、带宽或介质等实际成本的分摊，
+   只要不以取得软件副本为收费条件且价格不高于成本，不视为付费分发。
+
+3. Sublicensing / 再授权
+
+   You may sublicense modifications only under terms that preserve conditions
+   1 and 2. You may not impose additional restrictions that contradict the
+   rights expressly granted above.
+
+   可以对修改版再授权，但再授权条款必须完整保留第 1、2 条；不得叠加与上文
+   明示授权相冲突的限制。
+
+Third-party components / 第三方组件
+
+   The BSD-licensed WhatsApp Stickers sample code and Apache-2.0-licensed
+   AndroidX / Material Components dependencies remain under their own licenses.
+   See NOTICE, UPSTREAM-LICENSE-BSD.txt and the dependency licenses. The
+   additional conditions above apply only to this project's original portions
+   and do not alter those third-party licenses.
+
+   WhatsApp 示例的 BSD 部分与 AndroidX / Material Components 等 Apache-2.0
+   依赖仍各自适用原许可，见 NOTICE 与 UPSTREAM-LICENSE-BSD.txt；上述附加
+   条件只约束本项目原创部分，不改变第三方许可。
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,

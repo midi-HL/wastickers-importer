@@ -6,6 +6,7 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.radiobutton.MaterialRadioButton
 import com.google.android.material.slider.Slider
+import android.widget.TextView
 
 class SettingsActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,5 +46,8 @@ class SettingsActivity : BaseActivity() {
                 }
             }
         }
+
+        findViewById<TextView>(R.id.about_version).text =
+            getString(R.string.about_version, BuildConfig.VERSION_NAME)
     }
 }
