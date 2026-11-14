@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="seed_primary">#FF6750A4</color>
+    <color name="seed_on_primary">#FFFFFFFF</color>
+    <color name="seed_primary_container">#FFEADDFF</color>
+    <color name="seed_on_primary_container">#FF21005D</color>
+    <color name="md3_surface">#FFFFFBFE</color>
+    <color name="md3_surface_container">#FFF3EDF7</color>
+    <color name="md3_surface_container_low">#FFF7F2FA</color>
+    <color name="md3_surface_container_high">#FFECE6F0</color>
+</resources>

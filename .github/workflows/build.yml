@@ -1,0 +1,146 @@
+name: Build APK
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      VERSION_NAME: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '1.0.0' }}
+      VERSION_CODE: ${{ github.run_number }}
+      SIGNED: ${{ secrets.KEYSTORE_BASE64 != '' && secrets.KEYSTORE_PASSWORD != '' && secrets.KEY_ALIAS != '' && secrets.KEY_PASSWORD != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          accept-android-sdk-licenses: 'yes'
+          log-accepted-android-sdk-licenses: 'false'
+
+      - name: Install SDK packages
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools" >/dev/null
+
+      - name: Prepare release keystore from Secrets
+        if: env.SIGNED == 'true'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          KS="$RUNNER_TEMP/release.jks"
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$KS"
+          {
+            echo "KEYSTORE_FILE=$KS"
+            echo "KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD"
+            echo "KEY_ALIAS=$KEY_ALIAS"
+            echo "KEY_PASSWORD=$KEY_PASSWORD"
+          } >> "$GITHUB_ENV"
+          echo "Release signing material is configured."
+
+      - name: Unsigned release notice
+        if: env.SIGNED != 'true'
+        run: |
+          echo "### ⚠️ 未配置签名，本次以 debug 包为准" >> "$GITHUB_STEP_SUMMARY"
+          echo "未检测到完整的 KEYSTORE_BASE64 / KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD；release APK 为未签名包，请下载并安装 debug APK。" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Gradle lint, unit tests, debug and release APKs
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon --stacktrace \
+            -PVERSION_NAME="$VERSION_NAME" -PVERSION_CODE="$VERSION_CODE" \
+            lint test assembleDebug assembleRelease
+
+      - name: Collect APK artifacts
+        run: |
+          mkdir -p artifacts/debug artifacts/release
+          find app/build/outputs/apk/debug -name '*.apk' -exec cp {} artifacts/debug/ \;
+          find app/build/outputs/apk/release -name '*.apk' -exec cp {} artifacts/release/ \;
+          echo "### 本次产物（versionName=$VERSION_NAME, versionCode=$VERSION_CODE）" >> "$GITHUB_STEP_SUMMARY"
+          echo "| 类型 | 文件 |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| --- | --- |" >> "$GITHUB_STEP_SUMMARY"
+          find artifacts -name '*.apk' -printf '%p\n' | sort | while read -r apk; do
+            echo "| $(dirname "$apk" | sed 's#artifacts/##') | $(basename "$apk") |" >> "$GITHUB_STEP_SUMMARY"
+          done
+          if [ "$SIGNED" = "true" ]; then
+            echo "**release 已签名** ✅" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "**release 未签名**；可安装产物为 debug APK ⚠️" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Assert no INTERNET permission and provider survives minify
+        run: |
+          AAPT2=$(find "$ANDROID_SDK_ROOT/build-tools" -name aapt2 -type f | sort | tail -1)
+          echo "Using $AAPT2"
+          echo "### APK 权限与 Provider 校验" >> "$GITHUB_STEP_SUMMARY"
+          for apk in $(find artifacts -name '*.apk' | sort); do
+            echo "#### $(basename "$apk")" >> "$GITHUB_STEP_SUMMARY"
+            PERMS=$("$AAPT2" dump permissions "$apk" || true)
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            echo "$PERMS" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            if echo "$PERMS" | grep -q "android.permission.INTERNET"; then
+              echo "::error file=$apk::INTERNET permission is forbidden"
+              exit 1
+            fi
+            XMLTREE=$("$AAPT2" dump xmltree "$apk" --file AndroidManifest.xml || true)
+            if ! echo "$XMLTREE" | grep -q "StickerContentProvider"; then
+              echo "::error file=$apk::StickerContentProvider missing from final manifest"
+              exit 1
+            fi
+            if ! echo "$XMLTREE" | grep -q "io.github.midihl.wastickersimporter.stickercontentprovider"; then
+              echo "::error file=$apk::stickercontentprovider authority missing from final manifest"
+              exit 1
+            fi
+          done
+          echo "全部 APK：无 INTERNET 权限、ContentProvider 声明存在 ✅" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload debug APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-debug
+          path: artifacts/debug/*.apk
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Upload release APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-release
+          path: artifacts/release/*.apk
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Upload all APKs for tagged release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-all
+          path: artifacts/**/*.apk
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Create GitHub Release with APKs
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            artifacts/debug/*.apk artifacts/release/*.apk

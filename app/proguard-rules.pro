@@ -1,0 +1,6 @@
+-keep class io.github.midihl.wastickersimporter.StickerContentProvider { *; }
+-keep class io.github.midihl.wastickersimporter.ImporterApplication { *; }
+-keep class io.github.midihl.wastickersimporter.** extends android.app.Activity { *; }
+-keep class io.github.midihl.wastickersimporter.model.** { *; }
+-keepclassmembers class io.github.midihl.wastickersimporter.StickerContentProvider { *; }
+-dontwarn org.jetbrains.annotations.**

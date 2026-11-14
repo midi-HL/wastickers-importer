@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="SeedOverlay.0.Dark" parent="">
+        <item name="colorPrimary">@color/seed0_primary</item>
+        <item name="colorOnPrimary">@color/seed0_on_primary</item>
+        <item name="colorPrimaryContainer">@color/seed0_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/seed0_on_primary_container</item>
+        <item name="colorSecondary">@color/seed0_secondary</item>
+        <item name="colorOnSecondary">@color/seed0_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/seed0_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/seed0_on_secondary_container</item>
+        <item name="colorTertiary">@color/seed0_tertiary</item>
+        <item name="colorOnTertiary">@color/seed0_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/seed0_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/seed0_on_tertiary_container</item>
+        <item name="colorSurface">@color/seed0_surface</item>
+        <item name="colorSurfaceContainerLow">@color/seed0_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/seed0_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/seed0_surface_container_high</item>
+        <item name="colorOnSurface">@color/seed0_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/seed0_on_surface_variant</item>
+    </style>
+    <style name="SeedOverlay.1.Dark" parent="">
+        <item name="colorPrimary">@color/seed1_primary</item>
+        <item name="colorOnPrimary">@color/seed1_on_primary</item>
+        <item name="colorPrimaryContainer">@color/seed1_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/seed1_on_primary_container</item>
+        <item name="colorSecondary">@color/seed1_secondary</item>
+        <item name="colorOnSecondary">@color/seed1_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/seed1_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/seed1_on_secondary_container</item>
+        <item name="colorTertiary">@color/seed1_tertiary</item>
+        <item name="colorOnTertiary">@color/seed1_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/seed1_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/seed1_on_tertiary_container</item>
+        <item name="colorSurface">@color/seed1_surface</item>
+        <item name="colorSurfaceContainerLow">@color/seed1_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/seed1_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/seed1_surface_container_high</item>
+        <item name="colorOnSurface">@color/seed1_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/seed1_on_surface_variant</item>
+    </style>
+    <style name="SeedOverlay.2.Dark" parent="">
+        <item name="colorPrimary">@color/seed2_primary</item>
+        <item name="colorOnPrimary">@color/seed2_on_primary</item>
+        <item name="colorPrimaryContainer">@color/seed2_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/seed2_on_primary_container</item>
+        <item name="colorSecondary">@color/seed2_secondary</item>
+        <item name="colorOnSecondary">@color/seed2_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/seed2_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/seed2_on_secondary_container</item>
+        <item name="colorTertiary">@color/seed2_tertiary</item>
+        <item name="colorOnTertiary">@color/seed2_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/seed2_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/seed2_on_tertiary_container</item>
+        <item name="colorSurface">@color/seed2_surface</item>
+        <item name="colorSurfaceContainerLow">@color/seed2_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/seed2_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/seed2_surface_container_high</item>
+        <item name="colorOnSurface">@color/seed2_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/seed2_on_surface_variant</item>
+    </style>
+    <style name="SeedOverlay.3.Dark" parent="">
+        <item name="colorPrimary">@color/seed3_primary</item>
+        <item name="colorOnPrimary">@color/seed3_on_primary</item>
+        <item name="colorPrimaryContainer">@color/seed3_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/seed3_on_primary_container</item>
+        <item name="colorSecondary">@color/seed3_secondary</item>
+        <item name="colorOnSecondary">@color/seed3_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/seed3_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/seed3_on_secondary_container</item>
+        <item name="colorTertiary">@color/seed3_tertiary</item>
+        <item name="colorOnTertiary">@color/seed3_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/seed3_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/seed3_on_tertiary_container</item>
+        <item name="colorSurface">@color/seed3_surface</item>
+        <item name="colorSurfaceContainerLow">@color/seed3_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/seed3_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/seed3_surface_container_high</item>
+        <item name="colorOnSurface">@color/seed3_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/seed3_on_surface_variant</item>
+    </style>
+    <style name="SeedOverlay.4.Dark" parent="">
+        <item name="colorPrimary">@color/seed4_primary</item>
+        <item name="colorOnPrimary">@color/seed4_on_primary</item>
+        <item name="colorPrimaryContainer">@color/seed4_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/seed4_on_primary_container</item>
+        <item name="colorSecondary">@color/seed4_secondary</item>
+        <item name="colorOnSecondary">@color/seed4_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/seed4_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/seed4_on_secondary_container</item>
+        <item name="colorTertiary">@color/seed4_tertiary</item>
+        <item name="colorOnTertiary">@color/seed4_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/seed4_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/seed4_on_tertiary_container</item>
+        <item name="colorSurface">@color/seed4_surface</item>
+        <item name="colorSurfaceContainerLow">@color/seed4_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/seed4_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/seed4_surface_container_high</item>
+        <item name="colorOnSurface">@color/seed4_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/seed4_on_surface_variant</item>
+    </style>
+    <style name="SeedOverlay.5.Dark" parent="">
+        <item name="colorPrimary">@color/seed5_primary</item>
+        <item name="colorOnPrimary">@color/seed5_on_primary</item>
+        <item name="colorPrimaryContainer">@color/seed5_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/seed5_on_primary_container</item>
+        <item name="colorSecondary">@color/seed5_secondary</item>
+        <item name="colorOnSecondary">@color/seed5_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/seed5_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/seed5_on_secondary_container</item>
+        <item name="colorTertiary">@color/seed5_tertiary</item>
+        <item name="colorOnTertiary">@color/seed5_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/seed5_tertiary_container</item>
+        <item name="colorOnTertiaryContainer">@color/seed5_on_tertiary_container</item>
+        <item name="colorSurface">@color/seed5_surface</item>
+        <item name="colorSurfaceContainerLow">@color/seed5_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/seed5_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/seed5_surface_container_high</item>
+        <item name="colorOnSurface">@color/seed5_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/seed5_on_surface_variant</item>
+    </style>
+</resources>
