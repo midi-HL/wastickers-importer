@@ -168,7 +168,10 @@ class StickerContentProvider : ContentProvider() {
         return cursor
     }
 
-    private fun loadPacks(): List<PackManifest> = PackRepository.manifests(context ?: return emptyList())
+    private fun loadPacks(): List<PackManifest> {
+        val appContext = context ?: return emptyList()
+        return PackRepository.manifests(appContext)
+    }
 
     private fun packDirectory(identifier: String): File =
         File(File(context!!.filesDir, "packs"), identifier)
