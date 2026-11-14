@@ -40,7 +40,8 @@ android {
         create("ciRelease") {
             val keystore = System.getenv("KEYSTORE_FILE")
             if (!keystore.isNullOrBlank()) {
-                storeFile = rootProject.file(keystore)
+                storeFile = file(keystore)
+                storeType = "PKCS12"
                 storePassword = System.getenv("KEYSTORE_PASSWORD")
                 keyAlias = System.getenv("KEY_ALIAS")
                 keyPassword = System.getenv("KEY_PASSWORD")
