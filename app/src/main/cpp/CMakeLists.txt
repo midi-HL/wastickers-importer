@@ -15,17 +15,16 @@ set(WEBP_BUILD_LIBWEBPMUX ON CACHE BOOL "" FORCE)
 set(WEBP_LINK_STATIC ON CACHE BOOL "" FORCE)
 set(WEBP_ENABLE_SIMD OFF CACHE BOOL "" FORCE)
 set(WEBP_USE_THREAD OFF CACHE BOOL "" FORCE)
+
+# AGP adds -mno-sse2 -mno-sse4.1 for x86 Android targets. libwebp's scalar
+# float helpers use those ABI return registers, so append the enabled flags to
+# every libwebp OBJECT library before add_subdirectory().
+if(ANDROID_ABI STREQUAL "x86" OR ANDROID_ABI STREQUAL "x86_64")
+  add_compile_options(-msse2 -msse4.1)
+endif()
 add_subdirectory(${LIBWEBP_DIR} ${CMAKE_BINARY_DIR}/libwebp)
 
 add_library(wastickers_webp_jni SHARED wastickers_webp_jni.c)
 target_include_directories(wastickers_webp_jni PRIVATE ${LIBWEBP_DIR}/src)
 target_link_libraries(wastickers_webp_jni webp libwebpmux log)
 
-# AGP emits -mno-sse2 -mno-sse4.1 for x86 Android targets; libwebp's scalar
-# float conversion uses the ABI's SSE return registers, so restore the required
-# instruction sets for these two ABIs only.
-if(ANDROID_ABI STREQUAL "x86" OR ANDROID_ABI STREQUAL "x86_64")
-  target_compile_options(sharpyuv PRIVATE -msse2 -msse4.1)
-  target_compile_options(webp PRIVATE -msse2 -msse4.1)
-  target_compile_options(wastickers_webp_jni PRIVATE -msse2 -msse4.1)
-endif()
