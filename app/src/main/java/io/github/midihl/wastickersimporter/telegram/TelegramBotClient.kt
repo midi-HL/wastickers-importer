@@ -25,24 +25,27 @@ class TelegramBotClient(private val token: String) {
     companion object {
         /** Exposed for JVM unit tests with recorded Bot API JSON; no token or network required. */
         @JvmStatic
-        fun mapStickerSetForTest(json: String): TelegramStickerSet =
-            mapStickerSet(JSONObject(json).getJSONObject("result"), "myadestes_1_nacho")
+        fun mapStickerSetForTest(json: String): TelegramStickerSet {
+            val result = JSONObject(json).getJSONObject("result")
+            val name = result.optString("name", "myadestes_1_nacho")
+            return mapStickerSet(result, name)
+        }
 
         @JvmStatic
         fun mapStickerSet(result: JSONObject, shortName: String): TelegramStickerSet {
             val stickerArray = result.getJSONArray("stickers")
             val stickers = (0 until stickerArray.length()).map { i ->
                 val obj = stickerArray.getJSONObject(i)
-                TelegramSticker(
+                TelegramRecordedSticker(
                     fileId = obj.getString("file_id"),
-                    emoji = obj.optString("emoji", "😀").ifBlank { "😀" },
+                    emoji = obj.optString("emoji", "😀"),
                     isAnimated = obj.optBoolean("is_animated", false),
                     isVideo = obj.optBoolean("is_video", false),
                     thumbnailFileId = obj.optJSONObject("thumbnail")?.optString("file_id").orEmpty()
                 )
             }
-            return TelegramStickerSet(
-                name = result.optString("name", shortName),
+            return TelegramMetadataMapper.map(
+                shortName = result.optString("name", shortName),
                 title = result.optString("title", shortName),
                 stickerType = result.optString("sticker_type", "regular"),
                 stickers = stickers,

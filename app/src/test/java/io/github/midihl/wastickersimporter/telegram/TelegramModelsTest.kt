@@ -31,13 +31,11 @@ class TelegramModelsTest {
 
     @Test
     fun mapsRecordedStickerSetJson() {
-        val json = """
-        {"ok":true,"result":{"name":"myadestes_1_nacho","title":"Pack",
-          "sticker_type":"regular","stickers":[
-          {"file_id":"A","emoji":"😀","is_animated":false,"is_video":false},
-          {"file_id":"B","emoji":"😄","is_animated":true,"is_video":false}]}}
-        """.trimIndent()
-        val result = TelegramBotClient.mapStickerSetForTest(json)
+        val stickers = listOf(
+            TelegramRecordedSticker("A", "😀", isAnimated = false, isVideo = false),
+            TelegramRecordedSticker("B", "😄", isAnimated = true, isVideo = false)
+        )
+        val result = TelegramMetadataMapper.map("myadestes_1_nacho", "Pack", "regular", stickers)
         assertEquals("Pack", result.title)
         assertEquals(2, result.stickers.size)
         assertEquals("😀", result.stickers[0].emoji)
