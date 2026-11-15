@@ -152,11 +152,11 @@ sticker-convert（GPL-2.0-or-later）转换流程与 TGS 夹具概念被登记�
 | 现有仓库增量升级、Actions 成功、产物有可安装 APK | 以最新成功 Actions 运行记录为准 |
 | 权限集合恰好只有 INTERNET | CI 对每个 APK 用 `aapt2` 精确断言 |
 | v1 文件包打开/预览/再次添加、旧 manifest 仍可列出 | 代码兼容 `opt*` 字段；旧包回归单测 |
-| v2 静态包直拉：`getMe` 验证、链接拉取、64 张自动拆包、预览顺序/emoji | MuMu 模拟器 + 给定公开静态包测试；WhatsApp 确认页待真机 |
-| v2 TGS/WebM 转动态、≤500 KB、导入后仍动态 | TGS 管线实现 + 本地夹具；TGS/WebM 公开包与 WhatsApp 确认页待真机 |
-| 存库更新、不重复、重新拉取、导出 `.wastickers` 再导入 | 模拟器抽查 `files/packs`、导出 ZIP、重新导入 |
-| 错误与安全：错 token、错包名、取消清理、token 不出现在日志/manifest/导出 | 模拟器/静态检查 |
-| 大包进度可见可取消、拆分逐组可导入 | 64 张静态包模拟测试；WhatsApp 导入待真机 |
+| v2 静态包直拉：`getMe` 验证、链接拉取、64 张自动拆包、预览顺序/emoji | MuMu 已验证：`@test_agent_cchhbot` 验证通过；`myadestes_1_nacho` 拉取 64 张、自动拆为 30+30+4 三包，标题/作者/emoji 与 API 元数据一致；WhatsApp 确认页待真机 |
+| v2 TGS/WebM 转动态、≤500 KB、导入后仍动态 | TGS/WebM 管线、libwebp JNI 与 FFmpeg-LGPL 已接入并随 CI 四 ABI 编译；公开动画包与 WhatsApp 动态确认页待真机 |
+| 存库更新、不重复、重新拉取、导出 `.wastickers` 再导入 | MuMu 已验证：重复拉取仍为 3 个 identifier，`image_data_version` 递增到 4；导出等价 ZIP 经 `ACTION_VIEW` 重新导入为 `source_type=file` 的 30 张包 |
+| 错误与安全：错 token、错包名、取消清理、token 不出现在日志/manifest/导出 | MuMu/静态检查：错链接明确提示、未装 WhatsApp 明确提示；设备 `files/cache/导出 ZIP` 全量 grep 无 token 明文；取消按钮与清理代码已实现，早取消窗口待真机验收 |
+| 大包进度可见可取消、拆分逐组可导入 | 64 张静态包在 MuMu 显示「第 1/64 张」到完成 Snackbar、三包卡片可见；64 张静态 WebP 最大 50.2 KB、无 >100 KB；WhatsApp 导入待真机 |
 | U0–U7 动态取色/深浅色/动效/高刷 | 真机项待仓库主验收；截图中的标题重叠与 FAB 遮挡已在布局层修复 |
 
 ## 12. 许可证与上游署名
