@@ -33,8 +33,8 @@ jobs:
           accept-android-sdk-licenses: true
           log-accepted-android-sdk-licenses: false
 
-      - name: Install SDK packages
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools" >/dev/null
+      - name: Install SDK packages, NDK and CMake
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools" "ndk;27.0.12077973" "cmake;3.22.1" >/dev/null
 
       - name: Prepare release keystore from Secrets
         if: env.SIGNED == 'true'
@@ -60,6 +60,9 @@ jobs:
           echo "### ⚠️ 未配置签名，本次以 debug 包为准" >> "$GITHUB_STEP_SUMMARY"
           echo "未检测到完整的 KEYSTORE_BASE64 / KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD；release APK 为未签名包，请下载并安装 debug APK。" >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Verify vendored native sources
+        run: python3 scripts/verify-dependencies.py
+
       - name: Gradle lint, unit tests, debug and release APKs
         run: |
           chmod +x ./gradlew
@@ -74,10 +77,10 @@ jobs:
           find app/build/outputs/apk/debug -name '*.apk' -exec cp {} artifacts/debug/ \;
           find app/build/outputs/apk/release -name '*.apk' -exec cp {} artifacts/release/ \;
           echo "### 本次产物（versionName=$VERSION_NAME, versionCode=$VERSION_CODE）" >> "$GITHUB_STEP_SUMMARY"
-          echo "| 类型 | 文件 |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| --- | --- |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| 类型 | 文件 | 体积 |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| --- | --- | ---: |" >> "$GITHUB_STEP_SUMMARY"
           find artifacts -name '*.apk' -printf '%p\n' | sort | while read -r apk; do
-            echo "| $(dirname "$apk" | sed 's#artifacts/##') | $(basename "$apk") |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| $(dirname "$apk" | sed 's#artifacts/##') | $(basename "$apk") | $(du -h "$apk" | cut -f1) |" >> "$GITHUB_STEP_SUMMARY"
           done
           if [ "$SIGNED" = "true" ]; then
             echo "**release 已签名** ✅" >> "$GITHUB_STEP_SUMMARY"
@@ -85,7 +88,7 @@ jobs:
             echo "**release 未签名**；可安装产物为 debug APK ⚠️" >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Assert no INTERNET permission and provider survives minify
+      - name: Assert permission set is exactly INTERNET and provider survives minify
         run: |
           AAPT2=$(find "$ANDROID_SDK_ROOT/build-tools" -name aapt2 -type f | sort | tail -1)
           echo "Using $AAPT2"
@@ -96,8 +99,9 @@ jobs:
             echo '```' >> "$GITHUB_STEP_SUMMARY"
             echo "$PERMS" >> "$GITHUB_STEP_SUMMARY"
             echo '```' >> "$GITHUB_STEP_SUMMARY"
-            if echo "$PERMS" | grep -q "android.permission.INTERNET"; then
-              echo "::error file=$apk::INTERNET permission is forbidden"
+            ACTUAL=$(echo "$PERMS" | sed -n "s/.*uses-permission: name='\([^']*\)'.*/\1/p" | sort -u | paste -sd, -)
+            if [ "$ACTUAL" != "android.permission.INTERNET" ]; then
+              echo "::error file=$apk::permission set must be exactly android.permission.INTERNET, got '$ACTUAL'"
               exit 1
             fi
             XMLTREE=$("$AAPT2" dump xmltree "$apk" --file AndroidManifest.xml || true)
@@ -110,7 +114,7 @@ jobs:
               exit 1
             fi
           done
-          echo "全部 APK：无 INTERNET 权限、ContentProvider 声明存在 ✅" >> "$GITHUB_STEP_SUMMARY"
+          echo "全部 APK：权限集合恰好只有 INTERNET、ContentProvider 声明存在 ✅" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload debug APKs
         uses: actions/upload-artifact@v4

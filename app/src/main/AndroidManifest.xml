@@ -2,7 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- No permissions are requested. In particular INTERNET is forbidden and asserted in CI. -->
+    <!-- v2: exactly one permission; CI asserts the final permission set is {INTERNET}. -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <queries>
         <package android:name="com.whatsapp" />
@@ -65,6 +66,17 @@
                 <data android:host="*" />
                 <data android:pathPattern=".*\\.wastickers" />
                 <data android:pathPattern=".*\\..*\\.wastickers" />
+            </intent-filter>
+
+            <!-- T1: open t.me/addstickers/* links with an explicit chooser entry. -->
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="t.me" android:pathPrefix="/addstickers/" />
+                <data android:scheme="http" android:host="t.me" android:pathPrefix="/addstickers/" />
+                <data android:scheme="https" android:host="telegram.me" android:pathPrefix="/addstickers/" />
+                <data android:scheme="http" android:host="telegram.me" android:pathPrefix="/addstickers/" />
             </intent-filter>
 
             <!-- F1.2 ACTION_SEND from system share sheets. -->

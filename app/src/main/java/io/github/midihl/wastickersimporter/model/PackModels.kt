@@ -22,7 +22,13 @@ data class PackManifest(
     val publisherWebsite: String = "",
     val privacyPolicyWebsite: String = "",
     val licenseAgreementWebsite: String = "",
-    var sourceHash: String = ""
+    var sourceHash: String = "",
+    var sourceType: String = "file",
+    var telegramShortName: String = "",
+    var fetchedAt: Long = 0L,
+    var groupId: String = "",
+    var partIndex: Int = 0,
+    var partCount: Int = 1
 ) {
     val stickerCount: Int get() = stickers.size
 }

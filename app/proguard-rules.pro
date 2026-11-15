@@ -2,5 +2,11 @@
 -keep class io.github.midihl.wastickersimporter.ImporterApplication { *; }
 -keep class io.github.midihl.wastickersimporter.** extends android.app.Activity { *; }
 -keep class io.github.midihl.wastickersimporter.model.** { *; }
--keepclassmembers class io.github.midihl.wastickersimporter.StickerContentProvider { *; }
+-keep class io.github.midihl.wastickersimporter.convert.AnimatedWebpEncoder { *; }
+-keep class io.github.midihl.wastickersimporter.convert.AnimatedWebpEncoder$* { *; }
+-keepclasseswithmembernames class * { native <methods>; }
+-keep class com.arthenica.ffmpegkit.** { *; }
+-keep class com.airbnb.lottie.** { *; }
+-keep class com.github.penfeizhou.animation.** { *; }
 -dontwarn org.jetbrains.annotations.**
+-dontwarn com.arthenica.smartexception.**

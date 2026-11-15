@@ -1,49 +1,90 @@
-This project includes a Kotlin port of the Android sticker ContentProvider and
-sticker-pack import contract from the WhatsApp Stickers sample app:
-
-    https://github.com/WhatsApp/stickers
-    commit 06144a1f6077bbb346e1230032fc4e0bce996d03 (2025-11-07)
-
-Copyright (c) WhatsApp Inc. and its affiliates. All rights reserved.
-Copyright (c) Meta Platforms, Inc. and affiliates. All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
- * Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-
- * Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-
- * Neither the name WhatsApp nor the names of its contributors may be used to
-   endorse or promote products derived from this software without specific
-   prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-The full upstream BSD license text is reproduced in UPSTREAM-LICENSE-BSD.txt.
-AndroidX and Material Components for Android dependencies are distributed
-under the Apache License 2.0; their own notices and license text govern those
-components. The additional attribution / no-paid-distribution conditions in
-this project's LICENSE apply only to this project's original portions, and do
-not modify the licenses of these third-party components.
-
-No WhatsApp, Telegram, or Kazumi artwork, icons, fonts, or source code is
-included. Kazumi is referenced only as a visual design-language benchmark.
-
-Original project author: midi-HL
+NOTICE — .wastickers Importer v2.1
+Original author: midi-HL
 Original repository: https://github.com/midi-HL/wastickers-importer
-Modified versions must keep this author and repository attribution visible in
-their About screen and documentation. Paid distribution of the Software or a
-modified version is not permitted; see LICENSE for the complete terms.
+Original project license: GNU General Public License, version 3 only (GPL-3.0-only), see LICENSE.
+
+License decision (v2.1 section 8)
+--------------------------------
+sticker-convert upstream: https://github.com/laggykiller/sticker-convert
+Evidence checked: GitHub API `/license` reports `gpl-2.0`; `pyproject.toml` uses
+`license={file="LICENSE"}` with a GPLv2 classifier; `LICENSE` is the GPLv2 text;
+`sticker-convert.appdata.xml` declares `<project_license>GPL-2.0+</project_license>`,
+which is the author-maintained AppStream project-license identifier equivalent to
+GPL-2.0-or-later. Following the v2.1 decision tree, this project therefore adopts
+GPL-3.0-only. Apache-2.0 dependencies are compatible with GPL-3.0; no GPL-extra
+restrictions are imposed. All prior MIT / no-paid-distribution wording is removed.
+
+Reused upstream logic / files
+-----------------------------
+1) sticker-convert (GPL-2.0-or-later), commit inspected 2026-11-15.
+   Reused as conceptual reference and test fixture source:
+   - `tests/samples/animated_tgs_512x512_1s.tgs` conceptual TGS metadata fixture
+     (gzip Lottie JSON: v5.2.1, 60 fps, 512-class canvas); no upstream Python code
+     was copied into the Android app.
+   - `.wastickers` ZIP layout and Telegram conversion-flow conventions were
+     reimplemented in Kotlin under `app/src/main/java/.../telegram/` and
+     `.../convert/`; changed files carry this notice.
+   Upstream full license text: https://github.com/laggykiller/sticker-convert/blob/master/LICENSE
+
+2) WhatsApp Stickers Android sample (BSD), commit
+   06144a1f6077bbb346e1230032fc4e0bce996d03 (2025-11-07).
+   Kotlin port of the ContentProvider routes, Cursor columns, MIME values and
+   ENABLE_STICKER_PACK intent contract in `StickerContentProvider.kt` and
+   `WhatsAppImporter.kt`. Full BSD text: UPSTREAM-LICENSE-BSD.txt.
+   Copyright (c) WhatsApp Inc. and its affiliates. All rights reserved.
+   Copyright (c) Meta Platforms, Inc. and affiliates. All rights reserved.
+
+3) Kazumi (GPL-3.0), https://github.com/Predidit/Kazumi.
+   Only the Material You design language and interaction hierarchy are used as a
+   visual benchmark. No Kazumi source code, icons, fonts, or artwork is included.
+
+Third-party libraries (native / runtime)
+----------------------------------------
+All entries below retain their own licenses; the project-level GPL-3.0 applies to
+the original project portions and to the combined work distributed from this repo.
+
+A) AndroidX Security Crypto 1.1.0 — Apache-2.0
+   AAR SHA256: 2831ec1b455e8cc2ff861e8384d7893b42b3307c00f3be843feb02af8ac04b56
+   Used by `TelegramTokenStore` for EncryptedSharedPreferences / Android Keystore.
+
+B) Lottie-Android 6.7.1 — Apache-2.0
+   AAR SHA256: 4423cb34732018f0ef7262fdf6c4ae0b5aaea0ec05f55c3eef7e90cb100f1da9
+   Used in `TgsToWebpConverter` as the TGS/Lottie renderer fallback. Known
+   limitation: masks / mattes may differ slightly from Telegram's rlottie renderer.
+
+C) FFmpeg-Kit `min` 6.0-2.LTS — LGPL-3.0
+   Group/artifact: `com.arthenica:ffmpeg-kit-min:6.0-2.LTS`
+   AAR URL: https://maven-central.storage-download.googleapis.com/maven2/com/arthenica/ffmpeg-kit-min/6.0-2.LTS/ffmpeg-kit-min-6.0-2.LTS.aar
+   AAR SHA256: a05fe92c90f02f0369d455d212a39117838f25840af4319887fb877307cd490f
+   Source: https://github.com/arthenica/ffmpeg-kit
+   Used in `WebmToWebpConverter` for VP9 alpha frame extraction. The `min` build
+   contains no `--enable-gpl` / `--enable-nonfree` components.
+
+D) APNG4Android `awebpencoder` 3.0.5 — Apache-2.0
+   AAR SHA256: 4ea6f58d90483106a98d4eac6b73c36f8fe96d01ddaf40a308fe4d274ae0e725
+   Source: https://github.com/penfeizhou/APNG4Android
+   Used as the Java animated-WebP mux fallback; all frames are also offered to the
+   vendored libwebp WebPAnimEncoder through `AnimatedWebpEncoder`.
+
+E) libwebp 1.4.0 — BSD-3-Clause
+   Upstream tarball: https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.4.0.tar.gz
+   Upstream tarball SHA256: 61f873ec69e3be1b99535634340d5bde750b2e4447caa1db9f61be3fd49ab1e5
+   Vendored (pruned) source: `app/src/main/cpp/third_party/libwebp/`
+   Vendored tree SHA256: 60f32d5a4ede2b0db96a0da09e6ced94007dd07f4f83808017d54357fff084dd
+   CI verifies this digest with `scripts/verify-dependencies.py`.
+   Used for WebPAnimEncoder / libwebpmux via NDK/CMake/JNI. Upstream license text
+   is retained in `app/src/main/cpp/third_party/libwebp/COPYING`.
+
+F) AndroidX AppCompat / RecyclerView / ConstraintLayout / CoordinatorLayout /
+   Activity / Core, Kotlin Coroutines, Material Components for Android —
+   Apache-2.0 (respective upstream notices apply).
+
+G) rlottie Samsung v0.2 — MIT / mixed (evaluated, NOT linked in this build)
+   Source tarball: https://github.com/Samsung/rlottie/archive/refs/tags/v0.2.tar.gz
+   SHA256: 030ccbc270f144b4f3519fb3b86e20dd79fb48d5d55e57f950f12bab9b65216a
+   Not shipped because GPL-3.0 permits the Apache-2.0 Lottie-Android fallback.
+
+No WhatsApp, Telegram, or Kazumi trademarks, icons, fonts, or artwork are used.
+The app's adaptive icon is an original geometric sticker/document shape.
+The Telegram Bot Token is a user-supplied runtime credential; it is never stored
+in this repository, manifests, logs, exported .wastickers files, or test fixtures.

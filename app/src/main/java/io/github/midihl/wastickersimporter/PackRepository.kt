@@ -82,7 +82,7 @@ object PackRepository {
         }
     }
 
-    private fun materialize(context: Context, parsed: ParsedPack, sourceBytes: ByteArray): ImportResult {
+    fun materialize(context: Context, parsed: ParsedPack, sourceBytes: ByteArray): ImportResult {
         val sourceHash = StickerNames.shortHash(sourceBytes)
         val warnings = mutableListOf<String>()
         val trayBytes = makeTray(parsed)
@@ -119,7 +119,11 @@ object PackRepository {
                 imageDataVersion = "1",
                 animatedStickerPack = animated,
                 stickers = stickers,
-                sourceHash = sourceHash
+                sourceHash = sourceHash,
+                sourceType = "file",
+                groupId = identifier,
+                partIndex = part,
+                partCount = totalParts
             )
             writeManifest(dir, manifest)
             manifest
@@ -203,7 +207,7 @@ object PackRepository {
         return null
     }
 
-    private fun makeTray(parsed: ParsedPack): ByteArray {
+    fun makeTray(parsed: ParsedPack): ByteArray {
         val source = parsed.trayIconBytes ?: parsed.stickers.firstOrNull()?.bytes
             ?: throw ImportException("包内没有可用图片生成托盘图标")
         val bitmap = BitmapFactory.decodeByteArray(source, 0, source.size)
@@ -249,11 +253,17 @@ object PackRepository {
             avoidCache = json.optBoolean("avoid_cache", false),
             animatedStickerPack = json.optBoolean("animated_sticker_pack", false),
             stickers = list,
-            sourceHash = json.optString("source_hash", "")
+            sourceHash = json.optString("source_hash", ""),
+            sourceType = json.optString("source_type", "file"),
+            telegramShortName = json.optString("telegram_short_name", ""),
+            fetchedAt = json.optLong("fetched_at", 0L),
+            groupId = json.optString("group_id", json.optString("identifier")),
+            partIndex = json.optInt("part_index", 0),
+            partCount = json.optInt("part_count", 1)
         )
     }
 
-    private fun writeManifest(dir: File, manifest: PackManifest) {
+    fun writeManifest(dir: File, manifest: PackManifest) {
         val stickers = JSONArray()
         manifest.stickers.forEach {
             stickers.put(
@@ -274,6 +284,12 @@ object PackRepository {
             .put("animated_sticker_pack", manifest.animatedStickerPack)
             .put("stickers", stickers)
             .put("source_hash", manifest.sourceHash)
+            .put("source_type", manifest.sourceType)
+            .put("telegram_short_name", manifest.telegramShortName)
+            .put("fetched_at", manifest.fetchedAt)
+            .put("group_id", manifest.groupId)
+            .put("part_index", manifest.partIndex)
+            .put("part_count", manifest.partCount)
         File(dir, MANIFEST).writeText(json.toString())
     }
 }
