@@ -23,6 +23,13 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+        maven {
+            url = uri("https://maven.aliyun.com/repository/public")
+            content {
+                includeGroup("com.arthenica")
+                includeGroup("com.arthenica.smartexception")
+            }
+        }
     }
 }
 
