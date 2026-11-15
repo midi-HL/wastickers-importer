@@ -12,6 +12,11 @@ EXPECTED = {
 # The vendored libwebp tree is checked as a deterministic aggregate because
 # upstream ships hundreds of files. This value is regenerated with --update.
 AGGREGATE = "60f32d5a4ede2b0db96a0da09e6ced94007dd07f4f83808017d54357fff084dd"
+TEXT_SUFFIXES = {
+    ".c", ".h", ".cc", ".cpp", ".cmake", ".txt", ".md", ".am", ".in",
+    ".sh", ".py", ".java", ".go", ".swig", ".yml", ".yaml", ".json",
+    ".mk", ".pc", ".gradle", ".kts", ".xml", ""
+}
 
 
 def tree_digest(root: Path) -> str:
@@ -22,7 +27,10 @@ def tree_digest(root: Path) -> str:
         rel = path.relative_to(root).as_posix().encode()
         h.update(rel)
         h.update(b"\0")
-        h.update(path.read_bytes())
+        data = path.read_bytes()
+        if path.suffix in TEXT_SUFFIXES:
+            data = data.replace(b"\r\n", b"\n")
+        h.update(data)
         h.update(b"\0")
     return h.hexdigest()
 
