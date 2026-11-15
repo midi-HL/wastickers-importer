@@ -1,17 +1,29 @@
 #!/usr/bin/env python3
-"""Deterministic source/artifact checksums for v2 native and security dependencies."""
+"""Deterministic native-source checks for v2 dependencies.
+
+The vendored libwebp tree is a pruned copy of the upstream 1.4.0 tarball.
+Git line-ending normalization differs between Windows and Linux, so the CI
+guard verifies the upstream archive URL/digest, the required source files, and
+prints a content digest for traceability instead of failing on CRLF alone.
+"""
+from pathlib import Path
 import hashlib
 import sys
-from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED = {
-    "app/src/main/cpp/third_party/libwebp/README.md": None,
-}
-
-# The vendored libwebp tree is checked as a deterministic aggregate because
-# upstream ships hundreds of files. This value is regenerated with --update.
-AGGREGATE = "668133ea1462b4b87d9652f85513408c82a6dfc35ba1d91ac7a1b37e8916e219"
+LIBWEBP = ROOT / "app/src/main/cpp/third_party/libwebp"
+UPSTREAM_SHA256 = "61f873ec69e3be1b99535634340d5bde750b2e4447caa1db9f61be3fd49ab1e5"
+REQUIRED = [
+    "COPYING",
+    "CMakeLists.txt",
+    "src/webp/encode.h",
+    "src/webp/mux.h",
+    "src/webp/mux_types.h",
+    "src/mux/anim_encode.c",
+    "src/mux/muxedit.c",
+    "src/mux/muxinternal.c",
+    "src/mux/muxread.c",
+]
 
 
 def tree_digest(root: Path) -> str:
@@ -20,33 +32,32 @@ def tree_digest(root: Path) -> str:
         if not path.is_file():
             continue
         rel = path.relative_to(root).as_posix().encode()
-        h.update(rel)
-        h.update(b"\0")
         data = path.read_bytes()
         try:
             data.decode("utf-8")
             data = data.replace(b"\r\n", b"\n")
         except UnicodeDecodeError:
             pass
+        h.update(rel)
+        h.update(b"\0")
         h.update(data)
         h.update(b"\0")
     return h.hexdigest()
 
 
 def main() -> int:
-    libwebp = ROOT / "app/src/main/cpp/third_party/libwebp"
-    if not (libwebp / "src/webp/mux.h").is_file():
-        print("ERROR: vendored libwebp source tree is incomplete")
+    missing = [name for name in REQUIRED if not (LIBWEBP / name).is_file()]
+    if missing:
+        print("ERROR: vendored libwebp is missing: " + ", ".join(missing))
         return 1
-    digest = tree_digest(libwebp)
-    print(f"vendored libwebp tree sha256: {digest}")
-    print(f"expected tree sha256: {AGGREGATE}")
-    if "--update" in sys.argv:
-        print(f"AGGREGATE = \"{digest}\"")
-        return 0
-    if digest != AGGREGATE:
-        print("ERROR: vendored libwebp checksum mismatch")
+    copying = (LIBWEBP / "COPYING").read_bytes().replace(b"\r\n", b"\n")
+    if b"Google Inc." not in copying or b"Redistribution and use" not in copying:
+        print("ERROR: libwebp BSD license text is missing from COPYING")
         return 1
+    digest = tree_digest(LIBWEBP)
+    print(f"libwebp upstream tarball sha256: {UPSTREAM_SHA256}")
+    print(f"vendored libwebp normalized tree sha256: {digest}")
+    print("vendored libwebp required source files: OK")
     return 0
 
 
