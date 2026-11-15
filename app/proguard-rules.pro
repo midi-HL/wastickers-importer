@@ -10,3 +10,6 @@
 -keep class com.github.penfeizhou.animation.** { *; }
 -dontwarn org.jetbrains.annotations.**
 -dontwarn com.arthenica.smartexception.**
+-dontwarn javax.annotation.Nullable
+-dontwarn javax.annotation.concurrent.GuardedBy
+-dontwarn com.google.crypto.tink.**
