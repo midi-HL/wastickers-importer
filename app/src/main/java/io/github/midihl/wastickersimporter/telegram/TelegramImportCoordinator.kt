@@ -61,38 +61,43 @@ class TelegramImportCoordinator(
             rawFile.delete()
         }
         if (cancelled()) throw CancelledException()
-        if (converted.size < 3) {
-            throw ImportFailure(context.getString(R.string.telegram_too_few_valid, converted.size))
-        }
+        if (converted.size < 3) throw ImportFailure(context.getString(R.string.telegram_too_few_valid, converted.size))
         val sourceHash = digest.digest().joinToString("") { "%02x".format(Locale.ROOT, it) }.take(12)
         val trayBytes = resolveTray(set, converted.first().second)
+        val displayName = set.title.ifBlank { shortName }
         val parsed = ParsedPack(
-            name = set.title.ifBlank { shortName },
+            name = shortName,
             publisher = "Telegram · $shortName",
             trayIconBytes = trayBytes,
             stickers = converted.map { RawSticker(it.first, it.second, StickerNames.isAnimatedWebp(it.second)) }
         )
-        val materialized = PackRepository.materialize(
-            context,
-            parsed.copy(name = shortName),
-            parsed.name.toByteArray()
-        )
+        val materialized = PackRepository.materialize(context, parsed, parsed.name.toByteArray())
         val groupId = StickerNames.identifier(shortName, sourceHash)
         val now = System.currentTimeMillis()
         val animated = parsed.stickers.any { it.isAnimatedWebp }
         val oldParts = PackRepository.manifests(context)
             .filter { it.sourceType == "telegram" && it.telegramShortName == shortName }
-        val manifests = materialized.manifests.mapIndexed { index, manifest ->
-            val suffix = if (materialized.manifests.size > 1) "-part${index + 1}of${materialized.manifests.size}" else ""
+
+        // Move all generated files first; write final manifests only after the move.
+        val targets = materialized.manifests.mapIndexed { index, old ->
+            val totalParts = materialized.manifests.size
+            val suffix = if (totalParts > 1) "-part${index + 1}of$totalParts" else ""
             val identifier = StickerNames.identifier(shortName, sourceHash, suffix)
-            val dir = PackRepository.packDir(context, identifier)
+            val src = PackRepository.packDir(context, old.identifier)
+            val dst = PackRepository.packDir(context, identifier)
+            if (old.identifier != identifier) {
+                dst.deleteRecursively()
+                if (!src.renameTo(dst)) throw ImportFailure("cannot materialize pack directory")
+            }
             val prior = oldParts.firstOrNull { it.identifier == identifier }
                 ?: oldParts.firstOrNull { it.partIndex == index }
             val dataVersion = ((prior?.imageDataVersion?.toIntOrNull() ?: 0) + 1).toString()
-            val upgraded = manifest.copy(
+            val suffixName = if (totalParts > 1) " (${index + 1}/$totalParts)" else ""
+            val finalName = prior?.name?.takeIf { it.isNotBlank() } ?: "$displayName$suffixName"
+            finalName to old.copy(
                 identifier = identifier,
-                name = prior?.name?.takeIf { it.isNotBlank() } ?: manifest.name,
-                publisher = prior?.publisher?.takeIf { it.isNotBlank() } ?: manifest.publisher,
+                name = StickerNames.truncateField(finalName, displayName),
+                publisher = prior?.publisher?.takeIf { it.isNotBlank() } ?: "Telegram · $shortName",
                 imageDataVersion = dataVersion,
                 animatedStickerPack = animated,
                 sourceHash = sourceHash,
@@ -101,19 +106,12 @@ class TelegramImportCoordinator(
                 fetchedAt = now,
                 groupId = groupId,
                 partIndex = index,
-                partCount = materialized.manifests.size
+                partCount = totalParts
             )
-            PackRepository.writeManifest(dir, upgraded)
-            upgraded
         }
-        // materialize() used title-based identifiers; move generated files to the short-name identifier.
-        materialized.manifests.forEachIndexed { index, old ->
-            val targetIdentifier = manifests[index].identifier
-            if (old.identifier == targetIdentifier) return@forEachIndexed
-            val src = PackRepository.packDir(context, old.identifier)
-            val dst = PackRepository.packDir(context, targetIdentifier)
-            dst.deleteRecursively()
-            src.renameTo(dst)
+        val manifests = targets.map { (_, manifest) ->
+            PackRepository.writeManifest(PackRepository.packDir(context, manifest.identifier), manifest)
+            manifest
         }
         cleanupOldTelegramParts(shortName, manifests.map { it.identifier }.toSet())
         cacheDir.deleteRecursively()
