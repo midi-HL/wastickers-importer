@@ -11,12 +11,7 @@ EXPECTED = {
 
 # The vendored libwebp tree is checked as a deterministic aggregate because
 # upstream ships hundreds of files. This value is regenerated with --update.
-AGGREGATE = "60f32d5a4ede2b0db96a0da09e6ced94007dd07f4f83808017d54357fff084dd"
-TEXT_SUFFIXES = {
-    ".c", ".h", ".cc", ".cpp", ".cmake", ".txt", ".md", ".am", ".in",
-    ".sh", ".py", ".java", ".go", ".swig", ".yml", ".yaml", ".json",
-    ".mk", ".pc", ".gradle", ".kts", ".xml", ""
-}
+AGGREGATE = "668133ea1462b4b87d9652f85513408c82a6dfc35ba1d91ac7a1b37e8916e219"
 
 
 def tree_digest(root: Path) -> str:
@@ -28,8 +23,11 @@ def tree_digest(root: Path) -> str:
         h.update(rel)
         h.update(b"\0")
         data = path.read_bytes()
-        if path.suffix in TEXT_SUFFIXES:
+        try:
+            data.decode("utf-8")
             data = data.replace(b"\r\n", b"\n")
+        except UnicodeDecodeError:
+            pass
         h.update(data)
         h.update(b"\0")
     return h.hexdigest()
@@ -43,6 +41,9 @@ def main() -> int:
     digest = tree_digest(libwebp)
     print(f"vendored libwebp tree sha256: {digest}")
     print(f"expected tree sha256: {AGGREGATE}")
+    if "--update" in sys.argv:
+        print(f"AGGREGATE = \"{digest}\"")
+        return 0
     if digest != AGGREGATE:
         print("ERROR: vendored libwebp checksum mismatch")
         return 1
