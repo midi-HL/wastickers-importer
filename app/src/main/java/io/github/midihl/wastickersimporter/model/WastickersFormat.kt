@@ -49,12 +49,11 @@ object WastickersFormat {
                 lower.endsWith(".webp") || lower.endsWith(".png") -> images += entry
             }
         }
-        val stickerCandidates = ArrayList<ZipEntryData>()
-        stickerCandidates += entries.filter { it.name.lowercase().endsWith(".webp") }
-        // PNGs are normally tray icons, but packs without a distinguishable tray treat them as stickers.
+        // Preserve ZIP entry order for both WebP and non-tray PNG stickers.
         val tray = chooseTray(pngs)
-        for (png in pngs) {
-            if (png !== tray) stickerCandidates += png
+        val stickerCandidates = entries.filter {
+            val lower = it.name.lowercase()
+            (lower.endsWith(".webp") || lower.endsWith(".png")) && it !== tray
         }
         if (stickerCandidates.isEmpty()) throw ParseException("包内没有找到 .webp 或 .png 贴纸")
 

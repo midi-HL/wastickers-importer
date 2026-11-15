@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -34,6 +35,8 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 class MainActivity : BaseActivity() {
+    companion object { const val EXTRA_TELEGRAM_SHOR_NAME = "telegram_short_name" }
+
     private lateinit var recycler: RecyclerView
     private lateinit var emptyState: View
     private lateinit var progress: CircularProgressIndicator
@@ -46,6 +49,7 @@ class MainActivity : BaseActivity() {
 
     @Volatile private var cancelled = false
     private var telegramJob: Job? = null
+    private val importLock = Any()
 
     private val openFile = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         if (uri != null) {
@@ -73,10 +77,8 @@ class MainActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(findViewById(R.id.top_app_bar))
-        findViewById<MaterialToolbar>(R.id.top_app_bar).setOnMenuItemClickListener { item ->
-            if (item.itemId == R.id.action_settings) {
-                startActivity(Intent(this, SettingsActivity::class.java)); true
-            } else false
+        findViewById<MaterialButton>(R.id.open_settings_button).setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
         }
         recycler = findViewById(R.id.pack_recycler)
         emptyState = findViewById(R.id.empty_state)
@@ -101,7 +103,10 @@ class MainActivity : BaseActivity() {
         findViewById<MaterialButton>(R.id.empty_open_button).setOnClickListener {
             openFile.launch(arrayOf("*/*"))
         }
-        tgFetch.setOnClickListener { startTelegramFetch(tgInput.text?.toString().orEmpty()) }
+        tgFetch.setOnClickListener {
+            if (telegramJob?.isActive == true) return@setOnClickListener
+            startTelegramFetch(tgInput.text?.toString().orEmpty())
+        }
         tgCancel.setOnClickListener {
             cancelled = true
             telegramJob?.cancel()
@@ -111,6 +116,19 @@ class MainActivity : BaseActivity() {
         }
         handleIncomingIntent(intent)
     }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean =
+        if (item.itemId == R.id.action_settings) {
+            startActivity(Intent(this, SettingsActivity::class.java))
+            true
+        } else {
+            super.onOptionsItemSelected(item)
+        }
 
     override fun onResume() {
         super.onResume()
@@ -124,6 +142,11 @@ class MainActivity : BaseActivity() {
     }
 
     private fun handleIncomingIntent(incoming: Intent?) {
+        incoming?.getStringExtra(EXTRA_TELEGRAM_SHOR_NAME)?.takeIf { it.isNotBlank() }?.let {
+            startTelegramFetch(it)
+            incoming.removeExtra(EXTRA_TELEGRAM_SHOR_NAME)
+            return
+        }
         if (incoming?.action == Intent.ACTION_VIEW && TelegramLinkParser.isTelegramStickerLink(incoming.data)) {
             startTelegramFetch(incoming.data.toString())
             return
@@ -190,12 +213,14 @@ class MainActivity : BaseActivity() {
         val context = applicationContext
         telegramJob = CoroutineScope(Dispatchers.Main).launch {
             val result = withContext(Dispatchers.IO) {
-                runCatching {
-                    TelegramImportCoordinator(context, token) { cancelled }.fetchAndImport(shortName) { p ->
-                        launch(Dispatchers.Main) {
-                            val percent = if (p.total == 0) 0 else p.done * 100 / p.total
-                            tgProgress.setProgressCompat(percent, true)
-                            tgProgressText.text = getString(R.string.telegram_progress, p.done + 1, p.total, p.stage)
+                synchronized(importLock) {
+                    runCatching {
+                        TelegramImportCoordinator(context, token) { cancelled }.fetchAndImport(shortName) { p ->
+                            CoroutineScope(Dispatchers.Main).launch {
+                                val percent = if (p.total == 0) 0 else p.done * 100 / p.total
+                                tgProgress.setProgressCompat(percent, true)
+                                tgProgressText.text = getString(R.string.telegram_progress, p.done + 1, p.total, p.stage)
+                            }
                         }
                     }
                 }
@@ -226,6 +251,7 @@ class MainActivity : BaseActivity() {
 
     private fun setTelegramBusy(busy: Boolean) {
         tgFetch.isEnabled = !busy
+        tgInput.isEnabled = !busy
         tgCancel.visibility = if (busy) View.VISIBLE else View.GONE
         tgProgress.visibility = if (busy) View.VISIBLE else View.GONE
         tgProgressText.visibility = if (busy) View.VISIBLE else View.GONE

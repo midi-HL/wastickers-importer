@@ -39,12 +39,13 @@ Java_io_github_midihl_wastickersimporter_convert_AnimatedWebpEncoder_nativeEncod
     }
 
     WebPConfig config;
-    if (!WebPConfigPreset(&config, WEBP_PRESET_DEFAULT, (float) quality) || !WebPConfigLosslessPreset(&config, 6)) {
+    if (!WebPConfigPreset(&config, WEBP_PRESET_DEFAULT, (float) quality)) {
         WebPAnimEncoderDelete(encoder);
         (*env)->ReleaseIntArrayElements(env, jpixels, pixels, JNI_ABORT);
         (*env)->ReleaseIntArrayElements(env, jdurations, durations, JNI_ABORT);
         return NULL;
     }
+    config.lossless = 0;
     config.alpha_quality = 100;
     config.exact = 0;
     config.method = 4;
@@ -59,17 +60,27 @@ Java_io_github_midihl_wastickersimporter_convert_AnimatedWebpEncoder_nativeEncod
     picture.width = width;
     picture.height = height;
     picture.use_argb = 1;
+    if (!WebPPictureImportBGRA(&picture, (const uint8_t *) pixels, width * 4)) {
+        WebPAnimEncoderDelete(encoder);
+        (*env)->ReleaseIntArrayElements(env, jpixels, pixels, JNI_ABORT);
+        (*env)->ReleaseIntArrayElements(env, jdurations, durations, JNI_ABORT);
+        return NULL;
+    }
+    picture.use_argb = 0;
 
     int timestamp = 0;
     int ok = 1;
     size_t frameSize = (size_t) width * (size_t) height;
     for (int frame = 0; frame < frameCount && ok; frame++) {
-        if (!WebPPictureAlloc(&picture)) { ok = 0; break; }
-        memcpy(picture.argb, pixels + frame * frameSize, frameSize * sizeof(uint32_t));
+        if (frame > 0 && !WebPPictureImportBGRA(
+                &picture, (const uint8_t *) (pixels + frame * frameSize), width * 4)) {
+            ok = 0;
+            break;
+        }
         ok = WebPAnimEncoderAdd(encoder, &picture, timestamp, &config);
-        WebPPictureFree(&picture);
         timestamp += durations[frame];
     }
+    WebPPictureFree(&picture);
     if (ok) ok = WebPAnimEncoderAdd(encoder, NULL, timestamp, NULL);
     WebPData output;
     WebPDataInit(&output);

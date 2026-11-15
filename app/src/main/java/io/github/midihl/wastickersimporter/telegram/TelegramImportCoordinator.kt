@@ -9,6 +9,7 @@ import io.github.midihl.wastickersimporter.convert.WebmToWebpConverter
 import io.github.midihl.wastickersimporter.model.PackManifest
 import io.github.midihl.wastickersimporter.model.ParsedPack
 import io.github.midihl.wastickersimporter.model.RawSticker
+import io.github.midihl.wastickersimporter.model.StickerMetadata
 import io.github.midihl.wastickersimporter.model.StickerNames
 import java.io.File
 import java.security.MessageDigest
@@ -22,6 +23,7 @@ class TelegramImportCoordinator(
 ) {
     data class Progress(val done: Int, val total: Int, val stage: String)
     data class Result(val manifests: List<PackManifest>, val warnings: List<String>, val sourceHash: String)
+    private data class ConvertedSticker(val fileName: String, val bytes: ByteArray, val emojis: List<String>)
 
     private val client = TelegramBotClient(token)
     private val cacheDir = File(context.cacheDir, "telegram").apply { mkdirs() }
@@ -30,7 +32,7 @@ class TelegramImportCoordinator(
         val set = client.getStickerSet(shortName)
         if (cancelled()) throw CancelledException()
         val total = set.stickers.size
-        val converted = ArrayList<Pair<String, ByteArray>>()
+        val converted = ArrayList<ConvertedSticker>()
         val warnings = ArrayList<String>()
         val digest = MessageDigest.getInstance("SHA-256")
 
@@ -53,7 +55,11 @@ class TelegramImportCoordinator(
                     else -> StaticImageNormalizer.normalize(bytes)
                 }
                 if (output != null) {
-                    converted += "${index + 1}${sticker.emoji}.webp" to output
+                    converted += ConvertedSticker(
+                        "${index + 1}_${sanitizeFileName(sticker.emoji)}.webp",
+                        output,
+                        StickerMetadata.apiEmojis(sticker.emoji)
+                    )
                 } else {
                     warnings += context.getString(R.string.telegram_sticker_conversion_failed, index + 1)
                 }
@@ -63,15 +69,18 @@ class TelegramImportCoordinator(
         if (cancelled()) throw CancelledException()
         if (converted.size < 3) throw ImportFailure(context.getString(R.string.telegram_too_few_valid, converted.size))
         val sourceHash = digest.digest().joinToString("") { "%02x".format(Locale.ROOT, it) }.take(12)
-        val trayBytes = resolveTray(set, converted.first().second)
+        val trayBytes = resolveTray(set, converted.first().bytes)
         val displayName = set.title.ifBlank { shortName }
+        val emojisByFileName = converted.associate { it.fileName to it.emojis }
         val parsed = ParsedPack(
             name = shortName,
             publisher = "Telegram · $shortName",
             trayIconBytes = trayBytes,
-            stickers = converted.map { RawSticker(it.first, it.second, StickerNames.isAnimatedWebp(it.second)) }
+            stickers = converted.map { RawSticker(it.fileName, it.bytes, StickerNames.isAnimatedWebp(it.bytes)) }
         )
-        val materialized = PackRepository.materialize(context, parsed, parsed.name.toByteArray())
+        val materialized = PackRepository.materialize(context, parsed, parsed.name.toByteArray()) { fileName ->
+            emojisByFileName[fileName].orEmpty().ifEmpty { listOf("😀") }
+        }
         val groupId = StickerNames.identifier(shortName, sourceHash)
         val now = System.currentTimeMillis()
         val animated = parsed.stickers.any { it.isAnimatedWebp }
@@ -117,6 +126,11 @@ class TelegramImportCoordinator(
         cacheDir.deleteRecursively()
         return Result(manifests, warnings + materialized.warnings, sourceHash)
     }
+
+    private fun sanitizeFileName(value: String): String =
+        value.codePoints().toArray().joinToString("") { cp ->
+            String(Character.toChars(cp)).takeIf { Character.isLetterOrDigit(it.codePointAt(0)) || cp == 0x5F || cp == 0x2D } ?: "e"
+        }.take(24).ifBlank { "emoji" }
 
     private fun resolveTray(set: TelegramStickerSet, firstSticker: ByteArray): ByteArray? {
         val thumbId = set.thumbnailFileId.ifBlank { set.stickers.firstOrNull()?.thumbnailFileId.orEmpty() }

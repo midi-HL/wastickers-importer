@@ -82,7 +82,12 @@ object PackRepository {
         }
     }
 
-    fun materialize(context: Context, parsed: ParsedPack, sourceBytes: ByteArray): ImportResult {
+    fun materialize(
+        context: Context,
+        parsed: ParsedPack,
+        sourceBytes: ByteArray,
+        emojiResolver: (String) -> List<String> = { name -> StickerNames.emojisFromFileName(name) }
+    ): ImportResult {
         val sourceHash = StickerNames.shortHash(sourceBytes)
         val warnings = mutableListOf<String>()
         val trayBytes = makeTray(parsed)
@@ -108,7 +113,7 @@ object PackRepository {
             for ((i, pair) in chunk.withIndex()) {
                 val fileName = String.format("sticker_%03d.webp", i + 1)
                 File(dir, fileName).writeBytes(pair.second)
-                stickers += StickerEntry(fileName, StickerNames.emojisFromFileName(pair.first), "", pair.second.size.toLong())
+                stickers += StickerEntry(fileName, emojiResolver(pair.first), "", pair.second.size.toLong())
             }
             File(dir, TRAY).writeBytes(trayBytes)
             val manifest = PackManifest(

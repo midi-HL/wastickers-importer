@@ -17,7 +17,7 @@ object TelegramLinkParser {
                 if (host != "t.me" && host != "telegram.me" && host != "www.t.me" && host != "www.telegram.me") {
                     throw ParseError("unsupported_host")
                 }
-                val segments = uri.path.trim('/').split('/').filter { it.isNotEmpty() }
+                val segments = uri.rawPath.orEmpty().trim('/').split('/').filter { it.isNotEmpty() }
                 if (segments.firstOrNull()?.equals("addstickers", ignoreCase = true) != true) {
                     throw ParseError("not_addstickers")
                 }

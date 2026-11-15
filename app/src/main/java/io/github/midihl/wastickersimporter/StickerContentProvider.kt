@@ -78,6 +78,8 @@ class StickerContentProvider : ContentProvider() {
             MATCHER.addURI(authority, "$METADATA/*", METADATA_CODE_FOR_SINGLE_PACK)
             MATCHER.addURI(authority, "$STICKERS/*", STICKERS_CODE)
             MATCHER.addURI(authority, "$STICKERS_ASSET/*/*", STICKERS_ASSET_CODE)
+            // The official sample registers each tray icon path separately. We keep
+            // that distinction by resolving the requested file name at open time.
         }
         return true
     }
@@ -113,12 +115,24 @@ class StickerContentProvider : ContentProvider() {
         return AssetFileDescriptor(ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY), 0, file.length())
     }
 
-    override fun getType(uri: Uri): String = when (MATCHER.match(uri)) {
-        METADATA_CODE -> "vnd.android.cursor.dir/vnd.${BuildConfig.CONTENT_PROVIDER_AUTHORITY}.$METADATA"
-        METADATA_CODE_FOR_SINGLE_PACK -> "vnd.android.cursor.item/vnd.${BuildConfig.CONTENT_PROVIDER_AUTHORITY}.$METADATA"
-        STICKERS_CODE -> "vnd.android.cursor.dir/vnd.${BuildConfig.CONTENT_PROVIDER_AUTHORITY}.$STICKERS"
-        STICKERS_ASSET_CODE, STICKER_PACK_TRAY_ICON_CODE -> "image/webp"
+    override fun getType(uri: Uri): String = when {
+        MATCHER.match(uri) == METADATA_CODE ->
+            "vnd.android.cursor.dir/vnd.${BuildConfig.CONTENT_PROVIDER_AUTHORITY}.$METADATA"
+        MATCHER.match(uri) == METADATA_CODE_FOR_SINGLE_PACK ->
+            "vnd.android.cursor.item/vnd.${BuildConfig.CONTENT_PROVIDER_AUTHORITY}.$METADATA"
+        MATCHER.match(uri) == STICKERS_CODE ->
+            "vnd.android.cursor.dir/vnd.${BuildConfig.CONTENT_PROVIDER_AUTHORITY}.$STICKERS"
+        MATCHER.match(uri) == STICKERS_ASSET_CODE && isTrayIconUri(uri) -> "image/png"
+        MATCHER.match(uri) == STICKERS_ASSET_CODE -> "image/webp"
         else -> throw IllegalArgumentException("Unknown URI: $uri")
+    }
+
+    private fun isTrayIconUri(uri: Uri): Boolean {
+        val segments = uri.pathSegments
+        if (segments.size != 3) return false
+        val identifier = segments[1]
+        val fileName = segments[2]
+        return loadPacks().firstOrNull { it.identifier == identifier }?.trayImageFile == fileName
     }
 
     override fun delete(uri: Uri, selection: String?, selectionArgs: Array<String>?): Int =

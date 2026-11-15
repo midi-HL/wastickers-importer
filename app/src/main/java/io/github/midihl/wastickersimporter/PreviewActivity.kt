@@ -1,5 +1,6 @@
 package io.github.midihl.wastickersimporter
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -15,6 +16,7 @@ import com.google.android.material.textfield.TextInputEditText
 import io.github.midihl.wastickersimporter.UiMotion.childrenSequence
 import io.github.midihl.wastickersimporter.model.PackManifest
 import io.github.midihl.wastickersimporter.model.StickerEntry
+import io.github.midihl.wastickersimporter.telegram.WastickersExporter
 
 class PreviewActivity : BaseActivity() {
     companion object { const val EXTRA_IDENTIFIER = "identifier" }
@@ -23,6 +25,18 @@ class PreviewActivity : BaseActivity() {
     private lateinit var nameInput: TextInputEditText
     private lateinit var authorInput: TextInputEditText
     private lateinit var addButton: MaterialButton
+    private var pendingExport: PackManifest? = null
+    private val exportFile = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/octet-stream")
+    ) { uri ->
+        val manifest = pendingExport ?: return@registerForActivityResult
+        pendingExport = null
+        if (uri != null) {
+            runCatching { WastickersExporter.exportToUri(this, manifest, uri) }
+                .onSuccess { UiMotion.snackbar(findViewById(R.id.preview_root), getString(R.string.export_done)).show() }
+                .onFailure { showError(it.message ?: getString(R.string.error_unknown)) }
+        }
+    }
     private var addResultLauncher = registerForActivityResult(AddPackContract()) { (code, data) ->
         val message = WhatsAppImporter.describeResult(this, code, data)
         UiMotion.snackbar(findViewById(R.id.preview_root), message).show()
@@ -55,17 +69,38 @@ class PreviewActivity : BaseActivity() {
         grid.adapter = StickerAdapter(pack)
         grid.post { UiMotion.staggerIn(grid.childrenSequence(), this) }
         addButton.setOnClickListener { saveMetadataAndAdd() }
+        findViewById<MaterialButton>(R.id.preview_export_button).setOnClickListener {
+            pendingExport = pack
+            exportFile.launch("${pack.name.take(60).replace(Regex("[^A-Za-z0-9._-]"), "_")}.wastickers")
+        }
+        val refetch = findViewById<MaterialButton>(R.id.preview_refetch_button)
+        if (pack.sourceType == "telegram") {
+            refetch.visibility = View.VISIBLE
+            refetch.setOnClickListener {
+                saveMetadata()
+                startActivity(
+                    Intent(this, MainActivity::class.java)
+                        .putExtra(MainActivity.EXTRA_TELEGRAM_SHOR_NAME, pack.telegramShortName)
+                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                )
+            }
+        }
     }
 
-    private fun saveMetadataAndAdd() {
+    private fun saveMetadata() {
         val updated = PackRepository.updateMetadata(
-            this, pack.identifier,
+            this,
+            pack.identifier,
             nameInput.text?.toString().orEmpty(),
             authorInput.text?.toString().orEmpty()
         ) ?: pack
         pack = updated
         nameInput.setText(pack.name)
         authorInput.setText(pack.publisher)
+    }
+
+    private fun saveMetadataAndAdd() {
+        saveMetadata()
         val targets = WhatsAppImporter.installedTargets(this)
         when {
             targets.isEmpty() -> showError(getString(R.string.error_no_whatsapp))
