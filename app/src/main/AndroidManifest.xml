@@ -5,6 +5,11 @@
     <!-- v2: exactly one permission; CI asserts the final permission set is {INTERNET}. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- AndroidX Core injects this for API 33 dynamic receivers; this app registers none. -->
+    <uses-permission
+        android:name="${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        tools:node="remove" />
+
     <queries>
         <package android:name="com.whatsapp" />
         <package android:name="com.whatsapp.w4b" />
