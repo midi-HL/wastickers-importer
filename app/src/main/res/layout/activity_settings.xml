@@ -35,6 +35,41 @@
             <com.google.android.material.card.MaterialCardView
                 style="@style/Widget.App.Card"
                 android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_language"
+                        android:textAppearance="@style/TextAppearance.App.Title" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/settings_language_summary"
+                        android:textAppearance="@style/TextAppearance.App.Caption"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/language_button"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp"
+                        android:layout_marginTop="8dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.App.Card"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
                 <LinearLayout
@@ -52,7 +87,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/settings_dynamic_summary"
-                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textAppearance="@style/TextAppearance.App.Caption"
                         android:textColor="?attr/colorOnSurfaceVariant" />
 
                     <TextView
@@ -60,13 +95,13 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="20dp"
                         android:text="@string/settings_seed"
-                        android:textAppearance="?attr/textAppearanceTitleMedium" />
+                        android:textAppearance="@style/TextAppearance.App.Title" />
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/settings_seed_summary"
-                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textAppearance="@style/TextAppearance.App.Caption"
                         android:textColor="?attr/colorOnSurfaceVariant" />
 
                     <com.google.android.material.slider.Slider
@@ -94,7 +129,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/settings_theme"
-                        android:textAppearance="?attr/textAppearanceTitleMedium" />
+                        android:textAppearance="@style/TextAppearance.App.Title" />
 
                     <com.google.android.material.radiobutton.MaterialRadioButton
                         android:id="@+id/mode_system"
@@ -131,14 +166,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/telegram_token_title"
-                        android:textAppearance="?attr/textAppearanceTitleMedium" />
+                        android:textAppearance="@style/TextAppearance.App.Title" />
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:text="@string/telegram_token_help"
-                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textAppearance="@style/TextAppearance.App.Caption"
                         android:textColor="?attr/colorOnSurfaceVariant" />
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -160,7 +195,7 @@
                         android:id="@+id/telegram_bot_status"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textAppearance="@style/TextAppearance.App.Caption"
                         android:textColor="?attr/colorOnSurfaceVariant" />
 
                     <LinearLayout
@@ -200,7 +235,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/about_title"
-                        android:textAppearance="?attr/textAppearanceTitleMedium" />
+                        android:textAppearance="@style/TextAppearance.App.Title" />
 
                     <TextView
                         android:id="@+id/about_author"
@@ -208,7 +243,7 @@
                         android:layout_height="48dp"
                         android:gravity="center_vertical"
                         android:text="@string/about_author"
-                        android:textAppearance="?attr/textAppearanceBodyMedium" />
+                        android:textAppearance="@style/TextAppearance.App.Body" />
 
                     <TextView
                         android:id="@+id/about_repository"
@@ -217,21 +252,21 @@
                         android:autoLink="web"
                         android:gravity="center_vertical"
                         android:text="@string/about_repository"
-                        android:textAppearance="?attr/textAppearanceBodyMedium" />
+                        android:textAppearance="@style/TextAppearance.App.Body" />
 
                     <TextView
                         android:id="@+id/about_version"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
                         android:gravity="center_vertical"
-                        android:textAppearance="?attr/textAppearanceBodyMedium" />
+                        android:textAppearance="@style/TextAppearance.App.Body" />
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:text="@string/about_license"
-                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textAppearance="@style/TextAppearance.App.Caption"
                         android:textColor="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

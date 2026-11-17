@@ -23,7 +23,8 @@ android {
     ndkVersion = "27.0.12077973"
 
     defaultConfig {
-        applicationId = "io.github.midihl.wastickersimporter"
+        applicationId = (project.findProperty("PREVIEW_APPLICATION_ID") as String?)
+            ?: "io.github.midihl.wastickersimporter"
         minSdk = 24
         targetSdk = 35
         versionCode = appVersionCode
@@ -139,4 +140,6 @@ dependencies {
     implementation("com.arthenica:ffmpeg-kit-min:6.0-2.LTS")
     implementation("com.github.penfeizhou.android.animation:awebpencoder:3.0.5")
     testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
 }

@@ -61,7 +61,7 @@ object StickerNames {
 
     /** True when WebP bytes declare the ANIM chunk (animated WebP, passed through untouched). */
     fun isAnimatedWebp(bytes: ByteArray): Boolean {
-        if (bytes.size < 20) return false
+        if (bytes.size < 21) return false
         val riff = String(bytes, 0, 4, Charsets.US_ASCII)
         val webp = String(bytes, 8, 4, Charsets.US_ASCII)
         if (riff != "RIFF" || webp != "WEBP") return false

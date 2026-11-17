@@ -12,6 +12,14 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 class WastickersFormatTest {
+    @Test fun truncatedWebpExtendedHeaderDoesNotCrash() {
+        val bytes = ByteArray(20)
+        "RIFF".toByteArray().copyInto(bytes, 0)
+        "WEBP".toByteArray().copyInto(bytes, 8)
+        "VP8X".toByteArray().copyInto(bytes, 12)
+        org.junit.Assert.assertFalse(StickerNames.isAnimatedWebp(bytes))
+    }
+
     private fun zip(entries: LinkedHashMap<String, ByteArray>): ByteArray {
         val out = ByteArrayOutputStream()
         ZipOutputStream(out).use { zos ->

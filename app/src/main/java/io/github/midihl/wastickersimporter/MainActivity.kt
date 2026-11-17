@@ -77,9 +77,6 @@ class MainActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(findViewById(R.id.top_app_bar))
-        findViewById<MaterialButton>(R.id.open_settings_button).setOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
-        }
         recycler = findViewById(R.id.pack_recycler)
         emptyState = findViewById(R.id.empty_state)
         progress = findViewById(R.id.progress)
@@ -98,6 +95,9 @@ class MainActivity : BaseActivity() {
         recycler.layoutManager = LinearLayoutManager(this)
         recycler.adapter = adapter
         findViewById<ExtendedFloatingActionButton>(R.id.open_file_fab).setOnClickListener {
+            startActivity(Intent(this, StudioActivity::class.java))
+        }
+        findViewById<MaterialButton>(R.id.main_open_archive).setOnClickListener {
             openFile.launch(arrayOf("*/*"))
         }
         findViewById<MaterialButton>(R.id.empty_open_button).setOnClickListener {
@@ -150,6 +150,19 @@ class MainActivity : BaseActivity() {
         if (incoming?.action == Intent.ACTION_VIEW && TelegramLinkParser.isTelegramStickerLink(incoming.data)) {
             startTelegramFetch(incoming.data.toString())
             return
+        }
+        if (incoming?.type?.startsWith("image/") == true || incoming?.type?.startsWith("video/") == true) {
+            val media = when (incoming.action) {
+                Intent.ACTION_SEND_MULTIPLE -> incoming.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)
+                Intent.ACTION_SEND -> incoming.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)?.let { arrayListOf(it) }
+                Intent.ACTION_VIEW -> incoming.data?.let { arrayListOf(it) }
+                else -> null
+            }
+            if (!media.isNullOrEmpty()) {
+                startActivity(Intent(this, StudioActivity::class.java).putParcelableArrayListExtra("media_uris", media))
+                incoming.action = null
+                return
+            }
         }
         val uri = when (incoming?.action) {
             Intent.ACTION_VIEW -> incoming.data
@@ -280,6 +293,9 @@ class MainActivity : BaseActivity() {
     }
 
     private fun launchAdd(identifier: String, name: String) {
+        if ((PackRepository.get(this, identifier)?.stickerCount ?: 0) < 3) {
+            showError(getString(R.string.studio_whatsapp_min)); return
+        }
         val targets = WhatsAppImporter.installedTargets(this)
         when {
             targets.isEmpty() -> showError(getString(R.string.error_no_whatsapp))
@@ -335,7 +351,11 @@ class MainActivity : BaseActivity() {
             holder.name.text = pack.name
             holder.author.text = pack.publisher
             holder.count.text = getString(R.string.pack_sticker_count, pack.stickerCount)
-            holder.sourceBadge.text = if (pack.sourceType == "telegram") getString(R.string.source_telegram) else getString(R.string.source_file)
+            holder.sourceBadge.text = getString(when (pack.sourceType) {
+                "telegram" -> R.string.source_telegram
+                "studio" -> R.string.studio_source
+                else -> R.string.source_file
+            })
             ImageLoaders.loadSticker(holder.icon, this@MainActivity, pack, pack.trayImageFile)
             holder.card.setOnClickListener { onOpen(pack) }
             holder.add.setOnClickListener { onAdd(pack) }

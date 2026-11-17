@@ -18,8 +18,26 @@
 
     <style name="AppTheme" parent="Base.AppTheme" />
 
+    <!-- Compact type scale for 720p portrait: readable without the bulky default M3 headline sizes. -->
+    <style name="TextAppearance.App.Headline" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:textSize">24sp</item>
+        <item name="fontFamily">sans-serif-medium</item>
+    </style>
+    <style name="TextAppearance.App.Title" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textSize">17sp</item>
+        <item name="fontFamily">sans-serif-medium</item>
+    </style>
+    <style name="TextAppearance.App.Body" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textSize">14sp</item>
+        <item name="fontFamily">sans</item>
+    </style>
+    <style name="TextAppearance.App.Caption" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textSize">12sp</item>
+        <item name="fontFamily">sans</item>
+    </style>
+
     <style name="Widget.App.Card" parent="Widget.Material3.CardView.Filled">
-        <item name="cardCornerRadius">24dp</item>
+        <item name="cardCornerRadius">20dp</item>
         <item name="cardBackgroundColor">?attr/colorSurfaceContainerLow</item>
         <item name="contentPadding">16dp</item>
     </style>

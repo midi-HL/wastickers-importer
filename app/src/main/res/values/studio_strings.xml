@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<string name="studio_title">贴纸工作室</string>
+<string name="studio_intro">选取图片、GIF 或短视频制作贴纸。点按缩略图进行编辑、排序和设置封面。返回时自动保留草稿。</string>
+<string name="studio_add_media">添加图片 / 视频</string>
+<string name="studio_text_sticker">文字贴纸</string>
+<string name="studio_save">保存贴纸包</string>
+<string name="studio_discard">丢弃草稿</string>
+<string name="studio_discard_question">丢弃当前制作草稿？已保存的贴纸包不受影响。</string>
+<string name="studio_default_name">我的贴纸</string>
+<string name="studio_count">%1$d / 30 张 · 1 张即可保存，WhatsApp 至少需要 3 张</string>
+<string name="studio_edit">编辑贴纸</string>
+<string name="studio_emojis">关联表情（最多 3 个）</string>
+<string name="studio_duplicate">复制一张</string>
+<string name="studio_move_left">向前移动</string>
+<string name="studio_move_right">向后移动</string>
+<string name="studio_cover">设为封面</string>
+<string name="studio_item_title">贴纸 %1$d</string>
+<string name="studio_limit">每包支持 1–30 张贴纸，请分包制作。</string>
+<string name="studio_bad_image">无法处理这张图片，请选择其他文件。</string>
+<string name="studio_mixed">静态和动态贴纸需要分别制作成包。</string>
+<string name="studio_animation_edit">动态贴纸可在导入时裁剪时间；逐帧画面编辑暂不支持。</string>
+<string name="studio_video_start">起始时间（秒）</string>
+<string name="studio_video_duration">保留时长（最多 3 秒）</string>
+<string name="studio_video_note">GIF / 视频会在本地转换为动态贴纸。所选媒体使用相同的时间范围。</string>
+<string name="studio_video_range">起始时间应不小于 0，时长须在 0–3 秒之间。</string>
+<string name="studio_empty">请先添加至少一张贴纸。</string>
+<string name="studio_busy">正在处理，请稍候。</string>
+<string name="studio_create">制作贴纸</string>
+<string name="studio_edit_pack">编辑 / 管理贴纸</string>
+<string name="studio_whatsapp_min">WhatsApp 每包至少需要 3 张贴纸，请先继续添加。</string>
+<string name="studio_source">自己制作</string>
+<string name="studio_draft_recovery_failed">旧草稿无法完整恢复，已保留原文件并打开新的工作区。</string>
+</resources>

@@ -32,8 +32,8 @@
             android:id="@+id/pack_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:layout_marginStart="12dp"
+            android:textAppearance="@style/TextAppearance.App.Title"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/pack_icon_card"
             app:layout_constraintTop_toTopOf="@id/pack_icon_card" />
@@ -42,9 +42,9 @@
             android:id="@+id/pack_author"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="12dp"
             android:layout_marginTop="4dp"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textAppearance="@style/TextAppearance.App.Body"
             android:textColor="?attr/colorOnSurfaceVariant"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/pack_icon_card"
@@ -54,9 +54,9 @@
             android:id="@+id/pack_count"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="12dp"
             android:layout_marginTop="4dp"
-            android:textAppearance="?attr/textAppearanceLabelMedium"
+            android:textAppearance="@style/TextAppearance.App.Caption"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/pack_icon_card"
             app:layout_constraintTop_toBottomOf="@id/pack_author" />
@@ -70,51 +70,64 @@
             android:gravity="center_vertical"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
-            android:textAppearance="?attr/textAppearanceLabelSmall"
+            android:textAppearance="@style/TextAppearance.App.Caption"
             android:textColor="?attr/colorOnSecondaryContainer"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/pack_icon_card" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/pack_add"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
+        <LinearLayout
+            android:id="@+id/pack_primary_actions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:minWidth="48dp"
-            android:text="@string/again_add"
+            android:orientation="horizontal"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/pack_source_badge" />
+            app:layout_constraintTop_toBottomOf="@id/pack_source_badge">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/pack_export"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:minWidth="48dp"
-            android:text="@string/export_wastickers"
-            app:layout_constraintStart_toEndOf="@id/pack_add"
-            app:layout_constraintTop_toTopOf="@id/pack_add" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/pack_add"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:minWidth="0dp"
+                android:text="@string/again_add" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/pack_refetch"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:minWidth="48dp"
-            android:text="@string/refetch"
-            android:visibility="gone"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/pack_export"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:minWidth="0dp"
+                android:text="@string/export_wastickers" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/pack_add" />
+            app:layout_constraintTop_toBottomOf="@id/pack_primary_actions">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/pack_delete"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:minWidth="48dp"
-            android:text="@string/delete"
-            app:layout_constraintStart_toEndOf="@id/pack_refetch"
-            app:layout_constraintTop_toTopOf="@id/pack_refetch" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/pack_refetch"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:minWidth="0dp"
+                android:text="@string/refetch"
+                android:visibility="gone" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/pack_delete"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:minWidth="0dp"
+                android:text="@string/delete" />
+        </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

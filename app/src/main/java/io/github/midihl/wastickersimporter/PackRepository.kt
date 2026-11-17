@@ -41,15 +41,17 @@ object PackRepository {
 
     fun packDir(context: Context, identifier: String): File = File(packsRoot(context), identifier)
 
+    @Synchronized
     fun manifests(context: Context): List<PackManifest> = packsRoot(context)
         .listFiles().orEmpty()
-        .filter { it.isDirectory && File(it, MANIFEST).isFile }
+        .filter { it.isDirectory && (File(it, MANIFEST).isFile || File(it, "$MANIFEST.bak").isFile) }
         .mapNotNull { runCatching { readManifest(it) }.getOrNull() }
         .sortedBy { it.name }
 
     fun get(context: Context, identifier: String): PackManifest? =
         manifests(context).firstOrNull { it.identifier == identifier }
 
+    @Synchronized
     fun updateMetadata(context: Context, identifier: String, name: String, publisher: String): PackManifest? {
         val dir = packDir(context, identifier)
         val manifest = runCatching { readManifest(dir) }.getOrNull() ?: return null
@@ -136,6 +138,65 @@ object PackRepository {
         return ImportResult(manifests, warnings)
     }
 
+    /** Save a creator draft as a new version. Existing assets are retained until manifest commit. */
+    @Synchronized
+    fun saveStudio(context: Context, existingId: String?, name: String, publisher: String,
+                   images: List<Pair<File, List<String>>>, trayIndex: Int = 0): PackManifest {
+        require(images.size in 1..30) { context.getString(R.string.studio_limit) }
+        val raws = images.map { (file, _) ->
+            require(file.isFile && file.length() <= 8 * 1024 * 1024) { context.getString(R.string.studio_bad_image) }
+            val bytes = file.readBytes()
+            RawSticker(file.name, bytes, StickerNames.isAnimatedWebp(bytes))
+        }
+        require(raws.all { it.isAnimatedWebp } || raws.none { it.isAnimatedWebp }) {
+            context.getString(R.string.studio_mixed)
+        }
+        val animated = raws.first().isAnimatedWebp
+        val warnings = mutableListOf<String>()
+        val converted = raws.mapIndexed { index, raw ->
+            normalizeSticker(context, raw, animated, index + 1, warnings)?.second
+                ?: throw ImportException(warnings.lastOrNull() ?: context.getString(R.string.studio_bad_image))
+        }
+        val previous = existingId?.let { get(context, it) }
+        val id = previous?.identifier ?: existingId?.takeIf { it.matches(Regex("studio-[A-Za-z0-9-]{1,80}")) }
+            ?: "studio-${java.util.UUID.randomUUID()}"
+        val dir = packDir(context, id).apply { mkdirs() }
+        val revision = java.util.UUID.randomUUID().toString().take(8)
+        val created = mutableListOf<File>()
+        try {
+        val entries = converted.mapIndexed { index, bytes ->
+            val file = "s_${revision}_$index.webp"
+            File(dir, file).also { created += it; it.writeBytes(bytes) }
+            StickerEntry(file, images[index].second.take(3).ifEmpty { listOf("😀") }, "", bytes.size.toLong())
+        }
+        val traySource = if (animated) {
+            val bytes = converted[trayIndex.coerceIn(converted.indices)]
+            val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                ?: throw ImportException(context.getString(R.string.studio_bad_image))
+            ByteArrayOutputStream().use { out ->
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out); bitmap.recycle(); out.toByteArray()
+            }
+        } else converted[trayIndex.coerceIn(converted.indices)]
+        val tray = "tray_$revision.png"
+        File(dir, tray).also { created += it; it.writeBytes(makeTray(ParsedPack(name, publisher, traySource, emptyList()))) }
+        val manifest = PackManifest(id, StickerNames.truncateField(name, context.getString(R.string.studio_default_name)),
+            StickerNames.truncateField(publisher, "Unknown"), tray,
+            imageDataVersion = ((previous?.imageDataVersion?.toIntOrNull() ?: 0) + 1).toString(),
+            avoidCache = true, animatedStickerPack = animated, stickers = entries, sourceType = "studio", groupId = id)
+        writeManifest(dir, manifest)
+        // Keep one previous generation for consumers that already received its URIs.
+        val retained = (entries.map { it.imageFileName } + tray +
+            previous?.stickers.orEmpty().map { it.imageFileName } + listOfNotNull(previous?.trayImageFile)).toSet()
+        dir.listFiles().orEmpty().filter {
+            it.name.matches(Regex("(s_[A-Za-z0-9]+_[0-9]+\\.webp|tray_[A-Za-z0-9]+\\.png)")) && it.name !in retained
+        }.forEach { it.delete() }
+        return manifest
+        } catch (error: Throwable) {
+            created.forEach { it.delete() }
+            throw error
+        }
+    }
+
     /** Static fallback conversion: exactly 512x512 WebP, <=100 KB; animated WebP passes through. */
     private fun normalizeSticker(
         context: Context,
@@ -149,6 +210,11 @@ object PackRepository {
                 warnings += context.getString(R.string.import_mixed_animated_skip, position)
                 return null
             }
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeByteArray(raw.bytes, 0, raw.bytes.size, bounds)
+            if (bounds.outWidth != 512 || bounds.outHeight != 512) {
+                throw ImportException(context.getString(R.string.studio_bad_image))
+            }
             if (raw.bytes.size > ANIMATED_LIMIT) {
                 throw ImportException(context.getString(R.string.import_animated_too_large, position, raw.bytes.size / 1024))
             }
@@ -159,7 +225,14 @@ object PackRepository {
             return null
         }
         if (isCompliantWebp(raw.bytes)) return raw.originalName to raw.bytes
-        val bitmap = BitmapFactory.decodeByteArray(raw.bytes, 0, raw.bytes.size)
+        val decodeOptions = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(raw.bytes, 0, raw.bytes.size, decodeOptions)
+        decodeOptions.inSampleSize = 1
+        while (maxOf(decodeOptions.outWidth, decodeOptions.outHeight) / decodeOptions.inSampleSize > 1024) {
+            decodeOptions.inSampleSize *= 2
+        }
+        decodeOptions.inJustDecodeBounds = false
+        val bitmap = BitmapFactory.decodeByteArray(raw.bytes, 0, raw.bytes.size, decodeOptions)
             ?: run {
                 warnings += context.getString(R.string.import_decode_skip, position)
                 return null
@@ -236,8 +309,9 @@ object PackRepository {
         return out.toByteArray()
     }
 
+    @Synchronized
     private fun readManifest(dir: File): PackManifest {
-        val json = JSONObject(File(dir, MANIFEST).readText())
+        val json = JSONObject(android.util.AtomicFile(File(dir, MANIFEST)).openRead().bufferedReader().use { it.readText() })
         val stickers = json.getJSONArray("stickers")
         val list = (0 until stickers.length()).map { i ->
             val s = stickers.getJSONObject(i)
@@ -268,6 +342,7 @@ object PackRepository {
         )
     }
 
+    @Synchronized
     fun writeManifest(dir: File, manifest: PackManifest) {
         val stickers = JSONArray()
         manifest.stickers.forEach {
@@ -295,6 +370,14 @@ object PackRepository {
             .put("group_id", manifest.groupId)
             .put("part_index", manifest.partIndex)
             .put("part_count", manifest.partCount)
-        File(dir, MANIFEST).writeText(json.toString())
+        val file = android.util.AtomicFile(File(dir, MANIFEST))
+        val output = file.startWrite()
+        try {
+            output.write(json.toString().toByteArray(Charsets.UTF_8))
+            file.finishWrite(output)
+        } catch (error: Throwable) {
+            file.failWrite(output)
+            throw error
+        }
     }
 }

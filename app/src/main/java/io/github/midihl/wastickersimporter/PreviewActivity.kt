@@ -73,6 +73,16 @@ class PreviewActivity : BaseActivity() {
             pendingExport = pack
             exportFile.launch("${pack.name.take(60).replace(Regex("[^A-Za-z0-9._-]"), "_")}.wastickers")
         }
+        findViewById<MaterialButton>(R.id.preview_studio_button).setOnClickListener {
+            startActivity(Intent(this, StudioActivity::class.java)
+                .putExtra("identifier", pack.identifier)
+                .putExtra("draft_name", nameInput.text?.toString().orEmpty())
+                .putExtra("draft_author", authorInput.text?.toString().orEmpty()))
+            finish()
+        }
+        findViewById<MaterialButton>(R.id.preview_telegram_button).setOnClickListener {
+            saveMetadata(); TelegramExporter.launch(this, pack)
+        }
         val refetch = findViewById<MaterialButton>(R.id.preview_refetch_button)
         if (pack.sourceType == "telegram") {
             refetch.visibility = View.VISIBLE
@@ -101,6 +111,7 @@ class PreviewActivity : BaseActivity() {
 
     private fun saveMetadataAndAdd() {
         saveMetadata()
+        if (pack.stickerCount < 3) { showError(getString(R.string.studio_whatsapp_min)); return }
         val targets = WhatsAppImporter.installedTargets(this)
         when {
             targets.isEmpty() -> showError(getString(R.string.error_no_whatsapp))

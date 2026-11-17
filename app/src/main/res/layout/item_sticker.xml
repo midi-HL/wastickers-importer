@@ -24,6 +24,6 @@
             android:layout_width="match_parent"
             android:layout_height="32dp"
             android:gravity="center"
-            android:textAppearance="?attr/textAppearanceBodyMedium" />
+            android:textAppearance="@style/TextAppearance.App.Body" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

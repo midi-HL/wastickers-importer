@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      VERSION_NAME: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '2.0.0' }}
+      VERSION_NAME: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '3.0.0' }}
       VERSION_CODE: ${{ github.run_number }}
       SIGNED: ${{ secrets.KEYSTORE_BASE64 != '' && secrets.KEYSTORE_PASSWORD != '' && secrets.KEY_ALIAS != '' && secrets.KEY_PASSWORD != '' }}
     steps:
@@ -69,7 +69,7 @@ jobs:
           VERSION_NAME="${VERSION_NAME#v}"
           ./gradlew --no-daemon --stacktrace \
             -PVERSION_NAME="$VERSION_NAME" -PVERSION_CODE="$VERSION_CODE" \
-            lint test assembleDebug assembleRelease
+            lint test assembleDebug assembleRelease assembleDebugAndroidTest
 
       - name: Collect APK artifacts
         run: |
@@ -115,6 +115,23 @@ jobs:
             fi
           done
           echo "全部 APK：权限集合恰好只有 INTERNET、ContentProvider 声明存在 ✅" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload device regression test APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-device-tests
+          path: app/build/outputs/apk/androidTest/debug/*.apk
+          if-no-files-found: error
+
+      - name: Upload test and lint reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verification-reports
+          path: |
+            app/build/reports/tests/
+            app/build/reports/lint-results*.html
+          if-no-files-found: warn
 
       - name: Upload debug APKs
         uses: actions/upload-artifact@v4

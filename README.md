@@ -29,9 +29,26 @@ Telegram 机器人（如 `@tgtowabot`）和 sticker-convert 等工具可以把�
 - T5 统一存库：Telegram 包与文件包同列表，带「Telegram / 文件」角标；`manifest.json` 兼容旧字段并扩展 `source_type`、`telegram_short_name`、`fetched_at`、`group_id`、`part_index`、`part_count`；同短名重复拉取更新同 identifier 并递增 `image_data_version`；「重新拉取」保留用户改过的包名/作者；大包自动拆成多个 ≤30 张库条目。
 - T6 任意库条目可「导出」为 `.wastickers`，经 SAF 写回 `title.txt`、`author.txt`、托盘 PNG 与转换后 WebP，可再被 v1 文件链路打开。
 
-**明确不做**：贴纸制作/编辑、Telegram 账号登录/MTProto/TDLib、自有服务器、云同步、商店推荐、统计、广告 SDK、custom emoji 包、贴纸搜索、频道图片下载。网络只访问 `api.telegram.org`。
+**v3 贴纸工作室**
+
+- 系统文件选择器批量导入图片、GIF 和短视频；静态图片采样解码并校正 EXIF 方向。GIF/视频可指定起点和最多 3 秒片段，在本地转换为动态 WebP；静态与动态分别成包。
+- 原生图片编辑器：矩形/圆形/自由裁剪，擦除和恢复笔，连通相似色背景擦除，多行文字与表情定位，涂鸦，彩色描边，旋转、镜像、缩放，亮度和饱和度，撤销/重做。背景擦除不是 AI 主体分割。
+- 制作草稿自动保留；包内复制、删除、排序、关联表情和封面选择。1–30 张可保存，WhatsApp 仍要求至少 3 张。编辑保存保留包 ID 并递增资源版本，清单原子写入。
+- 静态包经 Telegram 官方 `CREATE_STICKER_PACK` 协议导入，无需 Bot Token。来自 Telegram 的动态包打开原包链接；自制动态 WebP 暂不能直接导入 Telegram，不会静态化冒充动态导出。
+- 保持免费、无广告和 Material You；设置支持跟随系统、简体中文、English。原创卷角笑脸自适应图标，支持主题单色图标。
+
+**范围之外**：云端 AI 抠图/生成、社交内容库、账号/关注、云同步、Telegram 账号登录/MTProto/TDLib、广告 SDK、custom emoji 包、频道图片下载。应用网络请求只访问 `api.telegram.org`，跨应用打开 Telegram 链接由目标应用处理。
+
+竞品流程参考：[Sticker.ly 产品说明](https://play.google.com/store/apps/details?id=com.snowcorp.stickerly.android)、[Sticker maker 产品说明](https://play.google.com/store/apps/details?id=com.marsvard.stickermakerforwhatsapp)。Telegram 契约来源：[官方导入文档](https://core.telegram.org/import-stickers)与[官方 Android 示例](https://github.com/DrKLO/TelegramStickersImport)。未复制竞品代码、美术或商业素材。
 
 ## 3. 使用步骤
+
+### 链路 C：制作自己的贴纸
+
+1. 主页点「制作贴纸」，填写包名和作者，添加图片/GIF/视频，或创建文字贴纸。
+2. 点缩略图进入编辑，选择工具后在画布操作并点「应用」，最后「保存贴纸」。未结束的工具先应用或取消。
+3. 返回工作室可设置封面、排序、复制、删除和表情。返回自动保留草稿，「丢弃草稿」需要确认。
+4. 「保存贴纸包」后，在预览页添加到 WhatsApp、Telegram 或导出 `.wastickers`；「编辑 / 管理贴纸」可继续修改。
 
 ### 链路 A：文件包
 

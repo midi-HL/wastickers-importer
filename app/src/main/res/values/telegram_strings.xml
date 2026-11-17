@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="add_to_telegram">添加到 Telegram</string>
+    <string name="telegram_export_preparing">正在准备贴纸，请稍候…</string>
+    <string name="telegram_export_animated_unsupported">暂不支持将本地动态 WebP 贴纸包导入 Telegram。Telegram 不接受动态 WebP；需要先转换为符合要求的 TGS 或带透明通道的 VP9 WebM。来自 Telegram 的动态包可直接打开原包链接。</string>
+    <string name="telegram_export_no_receiver">没有找到支持贴纸包导入的 Telegram 应用。请安装或更新 Telegram 后重试。</string>
+    <string name="telegram_export_no_link_receiver">没有找到可以打开 Telegram 贴纸包链接的应用。请安装 Telegram 或浏览器后重试。</string>
+    <string name="telegram_export_cannot_open">无法打开 Telegram 或授予贴纸读取权限，请稍后重试。</string>
+    <string name="telegram_export_invalid_link">原 Telegram 贴纸包链接无效，无法打开。</string>
+    <string name="telegram_export_empty">贴纸包为空，无法添加到 Telegram。</string>
+    <string name="telegram_export_missing_file">第 %1$d 张贴纸文件缺失或无法读取，请重新导入原贴纸包。</string>
+    <string name="telegram_export_too_large">第 %1$d 张贴纸大小不符合要求。Telegram 静态贴纸必须为非空文件，且不超过 512 KB。</string>
+    <string name="telegram_export_invalid_image">第 %1$d 张贴纸不符合 Telegram 静态贴纸要求：必须是 PNG 或静态 WebP，尺寸不超过 512 × 512，且至少一边为 512 像素。</string>
+    <string name="telegram_export_failed">准备 Telegram 贴纸失败，请检查贴纸文件及设备可用空间后重试。</string>
+</resources>

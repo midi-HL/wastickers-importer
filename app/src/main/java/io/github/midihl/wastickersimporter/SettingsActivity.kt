@@ -3,6 +3,7 @@ package io.github.midihl.wastickersimporter
 import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -14,7 +15,7 @@ import com.google.android.material.textfield.TextInputEditText
 import io.github.midihl.wastickersimporter.telegram.TelegramApiException
 import io.github.midihl.wastickersimporter.telegram.TelegramBotClient
 import io.github.midihl.wastickersimporter.telegram.TelegramTokenStore
-import kotlinx.coroutines.CoroutineScope
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -26,6 +27,33 @@ class SettingsActivity : BaseActivity() {
         val toolbar = findViewById<MaterialToolbar>(R.id.settings_toolbar)
         setSupportActionBar(toolbar)
         toolbar.setNavigationOnClickListener { finish() }
+
+        val languageButton = findViewById<MaterialButton>(R.id.language_button)
+        val languageLabels = arrayOf(
+            getString(R.string.language_system),
+            getString(R.string.language_chinese),
+            getString(R.string.language_english)
+        )
+        val languageTags = arrayOf("", "zh-CN", "en")
+        val currentLocale = AppCompatDelegate.getApplicationLocales()[0]
+        val selectedLanguage = when (currentLocale?.language) {
+            "zh" -> 1
+            "en" -> 2
+            else -> 0
+        }
+        languageButton.text = languageLabels[selectedLanguage]
+        languageButton.setOnClickListener {
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.settings_language)
+                .setSingleChoiceItems(languageLabels, selectedLanguage) { dialog, which ->
+                    dialog.dismiss()
+                    AppCompatDelegate.setApplicationLocales(
+                        LocaleListCompat.forLanguageTags(languageTags[which])
+                    )
+                }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        }
 
         val dynamicSwitch = findViewById<MaterialSwitch>(R.id.dynamic_switch)
         dynamicSwitch.isChecked = ThemeSettings.dynamicEnabled(this)
@@ -72,7 +100,7 @@ class SettingsActivity : BaseActivity() {
                 return@setOnClickListener
             }
             status.text = getString(R.string.telegram_testing)
-            CoroutineScope(Dispatchers.Main).launch {
+            lifecycleScope.launch {
                 val result = withContext(Dispatchers.IO) {
                     runCatching { TelegramBotClient(token).getMe() }
                 }

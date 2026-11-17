@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="add_to_telegram">Add to Telegram</string>
+    <string name="telegram_export_preparing">Preparing stickers. Please wait…</string>
+    <string name="telegram_export_animated_unsupported">Importing local animated WebP packs into Telegram is not supported yet. Telegram does not accept animated WebP; conversion to compliant TGS or VP9 WebM with transparency is required. Animated packs originally from Telegram can be opened using their original pack link.</string>
+    <string name="telegram_export_no_receiver">No Telegram app supporting sticker pack import was found. Install or update Telegram and try again.</string>
+    <string name="telegram_export_no_link_receiver">No app can open the Telegram sticker pack link. Install Telegram or a browser and try again.</string>
+    <string name="telegram_export_cannot_open">Unable to open Telegram or grant access to the stickers. Please try again later.</string>
+    <string name="telegram_export_invalid_link">The original Telegram sticker pack link is invalid.</string>
+    <string name="telegram_export_empty">This sticker pack is empty and cannot be added to Telegram.</string>
+    <string name="telegram_export_missing_file">Sticker %1$d is missing or unreadable. Import the original pack again.</string>
+    <string name="telegram_export_too_large">Sticker %1$d has an invalid file size. Telegram static stickers must be nonempty and no larger than 512 KB.</string>
+    <string name="telegram_export_invalid_image">Sticker %1$d does not meet Telegram requirements: PNG or static WebP, no larger than 512 × 512, with at least one side exactly 512 pixels.</string>
+    <string name="telegram_export_failed">Unable to prepare Telegram stickers. Check the sticker files and available device storage, then try again.</string>
+</resources>

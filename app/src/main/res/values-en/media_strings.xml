@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="media_invalid_trim">Trim start and duration must be valid positive numbers</string>
+    <string name="media_conversion_failed">The selected media could not be converted</string>
+    <string name="media_unsupported">This media format is unsupported or the file is invalid</string>
+    <string name="media_too_large">File size must not exceed 100 MB</string>
+    <string name="media_animated_webp_unsupported">Animated WebP must be 512×512 and no larger than 500 KB</string>
+</resources>

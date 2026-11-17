@@ -10,3 +10,8 @@ app/build/
 *.apk
 *.aab
 .DS_Store
+.kotlin/
+.workbuddy-ai/
+artifacts/
+promo_*/
+skills-zip/

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<string name="studio_title">Sticker studio</string>
+<string name="studio_intro">Turn photos, GIFs or short videos into stickers. Tap a thumbnail to edit, reorder or set the cover. Drafts are kept when you leave.</string>
+<string name="studio_add_media">Add photos / videos</string>
+<string name="studio_text_sticker">Text sticker</string>
+<string name="studio_save">Save sticker pack</string>
+<string name="studio_discard">Discard draft</string>
+<string name="studio_discard_question">Discard this draft? Your saved sticker pack will remain available.</string>
+<string name="studio_default_name">My stickers</string>
+<string name="studio_count">%1$d / 30 stickers · Save from 1; WhatsApp requires 3</string>
+<string name="studio_edit">Edit sticker</string>
+<string name="studio_emojis">Emoji (up to 3)</string>
+<string name="studio_duplicate">Duplicate</string>
+<string name="studio_move_left">Move earlier</string>
+<string name="studio_move_right">Move later</string>
+<string name="studio_cover">Set as cover</string>
+<string name="studio_item_title">Sticker %1$d</string>
+<string name="studio_limit">Each pack supports 1–30 stickers. Create another pack for more.</string>
+<string name="studio_bad_image">Could not process this image. Please choose another file.</string>
+<string name="studio_mixed">Create separate packs for static and animated stickers.</string>
+<string name="studio_animation_edit">Trim animation duration when importing. Frame-by-frame editing is not supported yet.</string>
+<string name="studio_video_start">Start time (seconds)</string>
+<string name="studio_video_duration">Duration (up to 3 seconds)</string>
+<string name="studio_video_note">GIFs and videos are converted locally. This time range applies to all selected media.</string>
+<string name="studio_video_range">Start must be 0 or later. Duration must be greater than 0 and at most 3 seconds.</string>
+<string name="studio_empty">Add at least one sticker first.</string>
+<string name="studio_busy">Processing, please wait.</string>
+<string name="studio_create">Make stickers</string>
+<string name="studio_edit_pack">Edit / manage stickers</string>
+<string name="studio_whatsapp_min">WhatsApp requires at least 3 stickers in a pack. Please add more first.</string>
+<string name="studio_source">Made by you</string>
+<string name="studio_draft_recovery_failed">The previous draft could not be fully restored. Its files were kept and a new workspace was opened.</string>
+</resources>
