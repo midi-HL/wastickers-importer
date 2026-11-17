@@ -79,6 +79,9 @@ android {
 
     buildTypes {
         debug {
+            if (!System.getenv("KEYSTORE_FILE").isNullOrBlank()) {
+                signingConfig = signingConfigs.getByName("ciRelease")
+            }
             isMinifyEnabled = false
             isShrinkResources = false
         }

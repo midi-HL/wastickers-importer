@@ -151,7 +151,7 @@ jobs:
 
       - name: Build side-by-side device validation package
         run: |
-          ./gradlew --no-daemon -PPREVIEW_APPLICATION_ID=io.github.midihl.wastickersimporter.studiotest \
+          ./gradlew --no-daemon -PPREVIEW_APPLICATION_ID=io.github.midihl.wastickersimporter.studiotestv3 \
             -PVERSION_NAME=3.0.0 -PVERSION_CODE="$VERSION_CODE" assembleDebug assembleDebugAndroidTest
           mkdir -p artifacts/preview
           cp app/build/outputs/apk/debug/*x86_64*.apk artifacts/preview/

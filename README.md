@@ -1,6 +1,6 @@
 # .wastickers Importer / .wastickers 导入器
 
-一个极简、免费、开源、无广告的 Android 小工具：打开现成的 `.wastickers` 文件，或粘贴 Telegram 贴纸包链接，用用户自己的 Bot Token 经 Telegram Bot API 拉取整包，在本地转换为 WhatsApp 合规贴纸并统一存库，最后通过 WhatsApp 官方第三方贴纸 API 添加到 WhatsApp / WhatsApp Business。
+一个免费、开源、无广告的原生 Android 贴纸工作室：导入图片、GIF 和短视频，裁剪、擦除背景、添加文字与描边，管理自己的贴纸包；同时保留 `.wastickers` 文件导入与 Telegram Bot API 拉取转换。静态包可通过官方入口添加到 WhatsApp / WhatsApp Business 或 Telegram，动态 WebP 可添加到 WhatsApp。
 
 > English summary: An offline-first Kotlin app that imports `.wastickers` files and can also fetch Telegram sticker sets through the official Bot API with a user-supplied token. Static, TGS and WebM video stickers are converted locally to WhatsApp-compatible WebP, stored in one in-app pack library, re-fetchable, exportable back to `.wastickers`, and added to WhatsApp / WhatsApp Business through the official sticker ContentProvider API. No ads, analytics, account system, or own server; the only network host is `api.telegram.org`.
 

@@ -99,10 +99,17 @@ object PackRepository {
             val result = normalizeSticker(context, raw, animated, index + 1, warnings)
             if (result != null) converted += result
         }
-        if (converted.size < MIN_STICKERS) {
-            throw ImportException("有效贴纸不足 3 张（当前 ${converted.size} 张），WhatsApp 要求每包至少 3 张")
+        if (converted.isEmpty()) {
+            throw ImportException("包内没有有效贴纸")
         }
-        val chunks = converted.chunked(STICKER_LIMIT)
+        val chunks = converted.chunked(STICKER_LIMIT).toMutableList()
+        if (chunks.size > 1 && chunks.last().size < MIN_STICKERS) {
+            val last = chunks.removeAt(chunks.lastIndex)
+            val previous = chunks.removeAt(chunks.lastIndex)
+            val needed = MIN_STICKERS - last.size
+            chunks += previous.dropLast(needed)
+            chunks += previous.takeLast(needed) + last
+        }
         val totalParts = chunks.size
         if (totalParts > 1) warnings += context.getString(R.string.import_split_notice, converted.size, totalParts)
         val manifests = chunks.mapIndexed { part, chunk ->

@@ -5,6 +5,8 @@ import android.net.Uri
 import io.github.midihl.wastickersimporter.PackRepository
 import io.github.midihl.wastickersimporter.model.PackManifest
 import java.io.File
+import java.io.FileNotFoundException
+import java.util.Locale
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -24,8 +26,11 @@ object WastickersExporter {
         zip.putNextEntry(ZipEntry("author.txt"))
         zip.write(manifest.publisher.toByteArray(Charsets.UTF_8))
         zip.closeEntry()
-        writeFile(zip, dir, manifest.trayImageFile)
-        manifest.stickers.forEach { writeFile(zip, dir, it.imageFileName) }
+        writeFile(zip, dir, manifest.trayImageFile, "tray.png")
+        manifest.stickers.forEachIndexed { index, sticker ->
+            val entryName = String.format(Locale.ROOT, "sticker_%03d_%s.webp", index + 1, sticker.emojis.joinToString(""))
+            writeFile(zip, dir, sticker.imageFileName, entryName)
+        }
     }
 
     fun exportToCache(context: Context, manifest: PackManifest): File {
@@ -34,10 +39,10 @@ object WastickersExporter {
         return file
     }
 
-    private fun writeFile(zip: ZipOutputStream, dir: File, name: String) {
+    private fun writeFile(zip: ZipOutputStream, dir: File, name: String, entryName: String) {
         val source = File(dir, name)
-        if (!source.isFile) return
-        zip.putNextEntry(ZipEntry(name))
+        if (!source.isFile) throw FileNotFoundException("导出资源不存在：$name")
+        zip.putNextEntry(ZipEntry(entryName))
         source.inputStream().use { it.copyTo(zip) }
         zip.closeEntry()
     }

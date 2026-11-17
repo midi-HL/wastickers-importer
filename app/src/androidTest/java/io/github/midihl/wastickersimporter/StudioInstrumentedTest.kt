@@ -220,6 +220,82 @@ class StudioInstrumentedTest {
         assertTrue(source.isFile)
     }
 
+    @Test
+    fun gifIsDecodedAndEncodedAsAnimatedSticker() = verifyMotionImport("studio_motion.gif")
+
+    @Test
+    fun videoIsDecodedAndEncodedAsAnimatedSticker() = verifyMotionImport("studio_motion.mp4")
+
+    private fun verifyMotionImport(asset: String) = withFixture { fixture ->
+        val source = File(fixture.directory, asset)
+        InstrumentationRegistry.getInstrumentation().context.assets.open(asset).use { input ->
+            source.outputStream().use { input.copyTo(it) }
+        }
+        val imported = runBlocking {
+            StudioMediaImporter.import(fixture.context, Uri.fromFile(source), fixture.outputDirectory, 0f, 1f)
+        }
+        val output = File(imported.path)
+        val bytes = output.readBytes()
+        assertTrue(imported.animated)
+        assertTrue(StickerNames.isAnimatedWebp(bytes))
+        assertTrue(countRiffChunks(bytes, "ANMF") >= 2)
+        assertTrue(bytes.size <= AnimatedWebpEncoder.MAX_BYTES)
+        assertDimensions(output, 512, 512)
+        assertTrue(fixture.save(listOf(output)).animatedStickerPack)
+    }
+
+    @Test
+    fun exportedOneTwoAndThreeStickerPacksKeepMetadataEmojiOrderAndCover() = withFixture { fixture ->
+        val images = listOf(Color.RED, Color.GREEN, Color.BLUE).mapIndexed { index, color ->
+            fixture.transparentPng("roundtrip_$index.png", color)
+        }
+        val emojis = listOf(listOf("😎"), listOf("🌸", "😀"), listOf("🚀"))
+        for (size in 1..3) {
+            val original = PackRepository.saveStudio(fixture.context, fixture.packId, fixture.packId,
+                "往返作者", images.take(size).mapIndexed { index, file -> file to emojis[index] }, size - 1)
+            val exported = io.github.midihl.wastickersimporter.telegram.WastickersExporter.exportToCache(fixture.context, original)
+            val restored = mutableListOf<String>()
+            try {
+                val parsed = io.github.midihl.wastickersimporter.model.WastickersFormat.parse(exported.inputStream(), "roundtrip")
+                val result = PackRepository.materialize(fixture.context, parsed, exported.readBytes())
+                restored += result.manifests.map { it.identifier }
+                val actual = result.manifests.single()
+                assertEquals(original.name, actual.name)
+                assertEquals(original.publisher, actual.publisher)
+                assertEquals(size, actual.stickerCount)
+                assertEquals(emojis.take(size), actual.stickers.map { it.emojis })
+                original.stickers.zip(actual.stickers).forEach { (before, after) ->
+                    assertArrayEquals(File(fixture.packDirectory, before.imageFileName).readBytes(),
+                        File(PackRepository.packDir(fixture.context, actual.identifier), after.imageFileName).readBytes())
+                }
+                assertArrayEquals(File(fixture.packDirectory, original.trayImageFile).readBytes(), parsed.trayPng)
+            } finally {
+                restored.forEach { PackRepository.delete(fixture.context, it) }
+                exported.delete()
+            }
+        }
+    }
+
+    @Test
+    fun largeArchiveDoesNotProduceOneOrTwoStickerTailPacks() = withFixture { fixture ->
+        val image = fixture.transparentPng("split.png").readBytes()
+        for ((size, expected) in listOf(31 to listOf(28, 3), 32 to listOf(29, 3), 61 to listOf(30, 28, 3))) {
+            val parsed = io.github.midihl.wastickersimporter.model.ParsedPack(
+                fixture.packId, "split", null, List(size) { index ->
+                    io.github.midihl.wastickersimporter.model.RawSticker("$index.png", image, false)
+                })
+            val created = mutableListOf<String>()
+            try {
+                val result = PackRepository.materialize(fixture.context, parsed, "$size-${fixture.packId}".toByteArray())
+                created += result.manifests.map { it.identifier }
+                assertEquals(expected, result.manifests.map { it.stickerCount })
+                assertEquals(size, result.manifests.sumOf { it.stickerCount })
+            } finally {
+                created.forEach { PackRepository.delete(fixture.context, it) }
+            }
+        }
+    }
+
     private class Fixture(val context: Context) {
         private val token = UUID.randomUUID().toString()
         val packId = "studio-test-$token"
