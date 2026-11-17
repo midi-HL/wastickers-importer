@@ -268,7 +268,7 @@ class StudioInstrumentedTest {
                     assertArrayEquals(File(fixture.packDirectory, before.imageFileName).readBytes(),
                         File(PackRepository.packDir(fixture.context, actual.identifier), after.imageFileName).readBytes())
                 }
-                assertArrayEquals(File(fixture.packDirectory, original.trayImageFile).readBytes(), parsed.trayPng)
+                assertArrayEquals(File(fixture.packDirectory, original.trayImageFile).readBytes(), parsed.trayIconBytes)
             } finally {
                 restored.forEach { PackRepository.delete(fixture.context, it) }
                 exported.delete()
