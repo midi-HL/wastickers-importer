@@ -209,6 +209,7 @@ class StudioActivity : BaseActivity() {
     }
     private fun refresh() {
         grid.removeAllViews(); count.text = getString(R.string.studio_count, items.size)
+        val cellWidth = ((resources.displayMetrics.widthPixels - dp(44)) / 3).coerceAtLeast(dp(64))
         items.forEachIndexed { index, item ->
             val card = MaterialCardView(this).apply { radius=dp(16).toFloat(); contentDescription=getString(R.string.cd_sticker,index+1,item.emojis.joinToString("")); isClickable=true; isFocusable=true }
             val content = LinearLayout(this).apply { orientation=LinearLayout.VERTICAL; setPadding(dp(6),dp(6),dp(6),dp(6)) }
@@ -218,7 +219,7 @@ class StudioActivity : BaseActivity() {
             content.addView(image,LinearLayout.LayoutParams(-1,dp(86)))
             content.addView(TextView(this).apply { text="${index+1}  ${item.emojis.joinToString("")} ${if(index==tray) "★" else ""} ${if(item.animated) "▶" else ""}"; gravity=android.view.Gravity.CENTER; textSize=13f })
             card.addView(content); card.setOnClickListener { if(!busy) actions(index) }
-            grid.addView(card,GridLayout.LayoutParams(GridLayout.spec(index/3),GridLayout.spec(index%3,1f)).apply { width=0; height=dp(130); setMargins(dp(3),dp(3),dp(3),dp(3)) })
+            grid.addView(card,GridLayout.LayoutParams(GridLayout.spec(index/3),GridLayout.spec(index%3)).apply { width=cellWidth; height=dp(130); setMargins(dp(3),dp(3),dp(3),dp(3)) })
         }
     }
     private fun actions(index: Int) {
