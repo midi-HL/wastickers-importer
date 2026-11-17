@@ -226,7 +226,9 @@ class StudioUiTest {
             draftName: String? = null,
             draftAuthor: String? = null
         ): StudioActivity {
-            val intent = Intent(context, StudioActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            // Each launch must create an instance; NEW_TASK alone can only bring the existing root to front.
+            val intent = Intent(context, StudioActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
                 .putExtra(FIXTURE_KEY, token)
             draftKey?.let { intent.putExtra("draft_key", it) }
             identifier?.let { intent.putExtra("identifier", it) }

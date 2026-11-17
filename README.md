@@ -80,7 +80,7 @@ Telegram 机器人（如 `@tgtowabot`）和 sticker-convert 等工具可以把�
 
 | 规则 | 处理 |
 | --- | --- |
-| 每包 3–30 张 | <3 阻止；>30 自动拆为多个子包 |
+| WhatsApp 每包 3–30 张 | 本地库和归档允许 1–30 张；添加到 WhatsApp 时不足 3 张阻止；>30 拆分并调整尾包，避免出现仅 1–2 张的尾包 |
 | 512×512 WebP | 合规 WebP 原样；静态 PNG/尺寸不符则等比居中补透明边并转 WebP，不裁切不拉伸 |
 | 静态 ≤100 KB | WEBP_LOSSY 逐步降质（90→30），仍超限跳过并点名 |
 | 动态 ≤500 KB | `.wastickers` 动态 WebP 原样；Telegram TGS/WebM 经原生管线生成并降质/降帧 |
@@ -96,7 +96,7 @@ Telegram 机器人（如 `@tgtowabot`）和 sticker-convert 等工具可以把�
 `.github/workflows/build.yml`：
 
 - 触发 `push main`、tag `v*`、`workflow_dispatch`；`ubuntu-latest`、JDK 17 temurin、`android-actions/setup-android@v3`、Android SDK 35 / build-tools 35 / NDK `27.0.12077973` / CMake `3.22.1`；仓库内 Gradle Wrapper 8.11.1；Gradle 缓存。
-- 先运行 `scripts/verify-dependencies.py` 校验 vendored libwebp 源码树 SHA256，再 `./gradlew lint test assembleDebug assembleRelease`。
+- 先运行 `scripts/verify-dependencies.py` 校验 vendored libwebp 源码树 SHA256，再 `./gradlew lint test assembleDebug assembleRelease assembleDebugAndroidTest`。额外构建独立 `studiotestv3` 旁装包与对应设备测试 APK；签名材料配置时 debug 和测试 APK 使用固定 CI 签名，支持后续无损更新。
 - `versionName` 取 tag（去掉 `v`）/ `gradle.properties`；`versionCode` 取 `GITHUB_RUN_NUMBER`。
 - 有 `KEYSTORE_BASE64`/`KEYSTORE_PASSWORD`/`KEY_ALIAS`/`KEY_PASSWORD` 时用 PKCS12 keystore 签名 release（v1/v2/v3 signing）；无签名材料时 release 未签名且 Job Summary 醒目提示以 debug 包为准，不因此失败。
 - ABI splits 产出 `armeabi-v7a`、`arm64-v8a`、`x86`、`x86_64` 与 `universal` 各 debug/release APK；Job Summary 列版本号、全部文件名、每个 APK 体积、签名状态与权限集合。
