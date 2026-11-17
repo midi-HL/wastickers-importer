@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">.wastickers 导入器</string>
     <string name="main_title">我的贴纸包</string>
-    <string name="main_subtitle">打开现成的 .wastickers，干净地送进 WhatsApp</string>
+    <string name="main_subtitle">制作你的贴纸，导入 WhatsApp 与 Telegram</string>
     <string name="open_file">打开 .wastickers</string>
     <string name="empty_title">还没有贴纸包</string>
     <string name="empty_body">从 @tgtowabot 或 sticker-convert 拿到 .wastickers 后，点下面的按钮打开它。</string>

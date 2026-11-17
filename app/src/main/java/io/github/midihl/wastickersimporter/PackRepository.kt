@@ -163,6 +163,7 @@ object PackRepository {
         val dir = packDir(context, id).apply { mkdirs() }
         val revision = java.util.UUID.randomUUID().toString().take(8)
         val created = mutableListOf<File>()
+        var committed = false
         try {
         val entries = converted.mapIndexed { index, bytes ->
             val file = "s_${revision}_$index.webp"
@@ -184,6 +185,7 @@ object PackRepository {
             imageDataVersion = ((previous?.imageDataVersion?.toIntOrNull() ?: 0) + 1).toString(),
             avoidCache = true, animatedStickerPack = animated, stickers = entries, sourceType = "studio", groupId = id)
         writeManifest(dir, manifest)
+        committed = true
         // Keep one previous generation for consumers that already received its URIs.
         val retained = (entries.map { it.imageFileName } + tray +
             previous?.stickers.orEmpty().map { it.imageFileName } + listOfNotNull(previous?.trayImageFile)).toSet()
@@ -192,7 +194,7 @@ object PackRepository {
         }.forEach { it.delete() }
         return manifest
         } catch (error: Throwable) {
-            created.forEach { it.delete() }
+            if (!committed) created.forEach { it.delete() }
             throw error
         }
     }

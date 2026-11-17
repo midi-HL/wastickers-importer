@@ -66,7 +66,7 @@ class StickerCanvasView @JvmOverloads constructor(context: Context, attrs: Attri
     fun begin(tool: Tool) {
         check(baseline == null)
         baseline = StickerImageTools.copy(image)
-        this.tool = tool; selected = false; selection.reset()
+        this.tool = tool; selected = false; selection.reset(); selectionBounds.setEmpty()
         textX = 256f; textY = 256f; textValue = ""
         invalidate(); onHistoryChanged?.invoke()
     }
@@ -171,7 +171,7 @@ class StickerCanvasView @JvmOverloads constructor(context: Context, attrs: Attri
                 parent?.requestDisallowInterceptTouchEvent(true)
                 startX=x; startY=y; previousX=x; previousY=y
                 if (tool == Tool.FREE) { selection.reset(); selection.moveTo(x,y); selected=true }
-                if (tool == Tool.RECT || tool == Tool.CIRCLE) { selection.reset(); selected=true }
+                if (tool == Tool.RECT || tool == Tool.CIRCLE) { selection.reset(); selectionBounds.set(x,y,x,y); selected=true }
                 if (tool == Tool.REMOVE) {
                     val result = StickerImageTools.removeConnected(image,x.toInt(),y.toInt(),tolerance)
                     image.recycle(); image=result

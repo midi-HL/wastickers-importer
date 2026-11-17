@@ -34,6 +34,7 @@ class StickerEditorActivity : BaseActivity() {
     }
     private lateinit var canvas: StickerCanvasView
     private lateinit var controls: LinearLayout
+    private lateinit var controlsScroll: ScrollView
     private lateinit var applyRow: LinearLayout
     private lateinit var hint: TextView
     private lateinit var undoButton: MaterialButton
@@ -94,10 +95,10 @@ class StickerEditorActivity : BaseActivity() {
         button(tools,R.string.editor_transform) { transform() }
         button(tools,R.string.editor_adjust) { adjust() }
         toolScroll.addView(tools); root.addView(toolScroll)
-        val panelScroll = ScrollView(this)
+        controlsScroll = ScrollView(this)
         controls = LinearLayout(this).apply { orientation=LinearLayout.VERTICAL; setPadding(dp(12),0,dp(12),0) }
-        panelScroll.addView(controls)
-        root.addView(panelScroll,LinearLayout.LayoutParams(-1,dp(156)))
+        controlsScroll.addView(controls)
+        root.addView(controlsScroll,LinearLayout.LayoutParams(-1,dp(minOf(156, resources.configuration.screenHeightDp / 4))))
         applyRow = LinearLayout(this)
         button(applyRow,R.string.editor_cancel) { canvas.cancel(); closeTool() }
         button(applyRow,R.string.editor_apply) {
@@ -158,6 +159,7 @@ class StickerEditorActivity : BaseActivity() {
         canvas.isEnabled=loaded && !busy
         progress.visibility=if (busy || !loaded) View.VISIBLE else View.GONE
         applyRow.visibility=if (canvas.inTransaction) View.VISIBLE else View.GONE
+        controlsScroll.visibility=if (canvas.inTransaction) View.VISIBLE else View.GONE
     }
 
     private fun label(text: Int) { controls.addView(TextView(this).apply { setText(text); textSize=13f }) }
@@ -250,8 +252,8 @@ class StickerEditorActivity : BaseActivity() {
     }
 
     private fun persistDraft() {
-        if (!loaded || finished || busy || (!dirty && !canvas.inTransaction) || !::draft.isInitialized) return
-        val image=canvas.snapshot()
+        if (!loaded || finished || !dirty || !::draft.isInitialized) return
+        val image=canvas.baselineCopy()
         // 独立生命周期和单线程保证重建期间完成写入，再读取最新草稿。
         draftScope.launch {
             try { runCatching { StickerImageTools.writePng(image,draft) } } finally { image.recycle() }
@@ -267,12 +269,14 @@ class StickerEditorActivity : BaseActivity() {
         val output=File(filesDir,"editor_outputs/${UUID.randomUUID()}.png")
         lifecycleScope.launch {
             val result=withContext(worker) {
-                try { runCatching { StickerImageTools.writePng(image,output); draft.delete(); output.absolutePath } }
+                try { runCatching { StickerImageTools.writePng(image,output); output.absolutePath } }
                 finally { image.recycle() }
             }
             busy=false
             result.onSuccess {
-                finished=true; setResult(RESULT_OK,Intent().putExtra("output_path",it)); finish()
+                finished=true
+                draftScope.launch { draft.delete() }
+                setResult(RESULT_OK,Intent().putExtra("output_path",it)); finish()
             }.onFailure { showError(getString(R.string.editor_save_failed)); refresh() }
         }
     }

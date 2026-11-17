@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">.wastickers Importer</string>
     <string name="main_title">My sticker packs</string>
-    <string name="main_subtitle">Open a ready-made .wastickers file and send it cleanly to WhatsApp</string>
+    <string name="main_subtitle">Make your own stickers for WhatsApp and Telegram</string>
     <string name="open_file">Open .wastickers</string>
     <string name="empty_title">No sticker packs yet</string>
     <string name="empty_body">Get a .wastickers file from @tgtowabot or sticker-convert, then use the button below.</string>
