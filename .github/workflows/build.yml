@@ -149,6 +149,21 @@ jobs:
           retention-days: 30
           if-no-files-found: error
 
+      - name: Build side-by-side device validation package
+        run: |
+          ./gradlew --no-daemon -PPREVIEW_APPLICATION_ID=io.github.midihl.wastickersimporter.studiotest \
+            -PVERSION_NAME=3.0.0 -PVERSION_CODE="$VERSION_CODE" assembleDebug assembleDebugAndroidTest
+          mkdir -p artifacts/preview
+          cp app/build/outputs/apk/debug/*x86_64*.apk artifacts/preview/
+          cp app/build/outputs/apk/androidTest/debug/*.apk artifacts/preview/
+
+      - name: Upload side-by-side device validation package
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-device-preview
+          path: artifacts/preview/*.apk
+          if-no-files-found: error
+
       - name: Upload all APKs for tagged release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v4
