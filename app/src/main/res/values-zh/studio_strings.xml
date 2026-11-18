@@ -31,4 +31,25 @@
 <string name="studio_whatsapp_min">WhatsApp 每包至少需要 3 张贴纸，请先继续添加。</string>
 <string name="studio_source">自己制作</string>
 <string name="studio_draft_recovery_failed">旧草稿无法完整恢复，已保留原文件并打开新的工作区。</string>
+<string name="studio_details">贴纸包信息</string>
+<string name="studio_autosave_note">草稿自动保存，随时回来继续制作。</string>
+<string name="studio_stickers">我的贴纸</string>
+<string name="studio_short_count">%1$d / 30</string>
+<string name="studio_stickers_note">1 张即可保存 · WhatsApp 每包至少 3 张</string>
+<string name="studio_add_sticker">添加贴纸</string>
+<string name="studio_empty_title">制作你的第一张贴纸</string>
+<string name="studio_empty_note">从相册选择图片或视频，\n也可以用文字和表情开始创作。</string>
+<string name="studio_choose_media">图片或视频</string>
+<string name="studio_choose_media_note">从相册选择，图片选好后立即编辑</string>
+<string name="studio_choose_text_note">输入文字和表情，自由调整颜色与大小</string>
+<string name="nav_library">贴纸库</string>
+<string name="nav_import">导入</string>
+<string name="library_headline">让聊天更有趣</string>
+<string name="library_summary">%1$d 个贴纸包 · %2$d 张贴纸</string>
+<string name="import_headline">收藏喜欢的贴纸</string>
+<string name="import_description">打开本地贴纸文件，或从 Telegram 链接导入。</string>
+<string name="import_file_title">从文件导入</string>
+<string name="import_file_note">选择 .wastickers 贴纸包，自动整理到贴纸库。</string>
+<string name="import_telegram_note">粘贴贴纸包链接，即可保存并转换。</string>
+<string name="pack_details_edit">修改贴纸包信息</string>
 </resources>

@@ -2,9 +2,10 @@
 """Deterministic native-source checks for v2 dependencies.
 
 The vendored libwebp tree is a pruned copy of the upstream 1.4.0 tarball.
-Git line-ending normalization differs between Windows and Linux, so the CI
-guard verifies the upstream archive URL/digest, the required source files, and
-prints a content digest for traceability instead of failing on CRLF alone.
+The CI guard checks required source files and the BSD license text, then
+prints the recorded upstream archive digest and a local content digest for
+traceability. It does not download or verify the upstream archive or compare
+against a fixed expected tree digest. Text line endings are normalized to LF.
 """
 from pathlib import Path
 import hashlib

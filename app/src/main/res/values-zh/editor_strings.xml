@@ -37,7 +37,7 @@
     <string name="editor_mirror_x">水平镜像</string>
     <string name="editor_mirror_y">垂直镜像</string>
     <string name="editor_scale">缩放 %</string>
-    <string name="editor_brightness">亮度（100 为原图）</string>
+    <string name="editor_brightness">亮度</string>
     <string name="editor_saturation">饱和度 %</string>
     <string name="editor_white">白色</string>
     <string name="editor_black">黑色</string>
@@ -55,4 +55,20 @@
     <string name="editor_unsaved_question">保存到工作室，或保留草稿下次继续？</string>
     <string name="editor_keep_draft">保留草稿</string>
     <string name="editor_discard">放弃修改</string>
+    <string name="editor_tools">编辑工具</string>
+    <string name="editor_position">移动缩放</string>
+    <string name="editor_rounded">圆角裁剪</string>
+    <string name="editor_corner_radius">圆角半径</string>
+    <string name="editor_gesture_intro">单指移动图片 · 双指缩放 · 选择下方工具精修</string>
+    <string name="editor_transform_gesture_hint">单指移动图片 · 双指缩放图片</string>
+    <string name="editor_crop_gesture_hint">单指拖出选区 · 双指放大查看</string>
+    <string name="editor_brush_gesture_hint">单指涂画 · 双指放大查看与移动</string>
+    <string name="editor_remove_gesture_hint">点按相似色背景 · 双指放大查看</string>
+    <string name="editor_text_gesture_hint">单指移动文字 · 双指调整文字大小</string>
+    <string name="editor_rounded_note">默认裁剪整张图片，也可拖出新选区并调整圆角。</string>
+    <string name="editor_transform_note">缩放和移动会改变保存后的图片，超出画布的部分会被裁切。</string>
+    <string name="editor_remove_note">去除相连的相似颜色。复杂背景可配合橡皮擦精修。</string>
+    <string name="editor_reset_position">重置位置</string>
+    <string name="editor_reset_view">重置查看比例</string>
+    <string name="editor_text_empty">请先输入文字或表情</string>
 </resources>

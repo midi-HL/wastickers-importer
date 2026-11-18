@@ -19,6 +19,32 @@ import kotlin.math.abs
 @RunWith(AndroidJUnit4::class)
 class StickerImageToolsTest {
     @Test
+    fun editorGlyphRespectsThemeTintAndDisabledState() = withImages { images ->
+        val glyph = EditorGlyph("text").apply { setBounds(0, 0, 24, 24) }
+        val output = images.keep(Bitmap.createBitmap(24, 24, Bitmap.Config.ARGB_8888))
+        fun assertRenderedColor(expected: Int) {
+            output.eraseColor(Color.TRANSPARENT)
+            glyph.draw(Canvas(output))
+            val pixel = output.getPixel(12, 12)
+            assertTrue(Color.alpha(pixel) > 200)
+            assertTrue(abs(Color.red(expected) - Color.red(pixel)) <= 1)
+            assertTrue(abs(Color.green(expected) - Color.green(pixel)) <= 1)
+            assertTrue(abs(Color.blue(expected) - Color.blue(pixel)) <= 1)
+        }
+        glyph.setTint(Color.WHITE)
+        assertRenderedColor(Color.WHITE)
+        glyph.setTintList(android.content.res.ColorStateList(
+            arrayOf(intArrayOf(android.R.attr.state_enabled), intArrayOf()),
+            intArrayOf(Color.CYAN, Color.GRAY)
+        ))
+        assertTrue(glyph.isStateful)
+        glyph.state = intArrayOf(android.R.attr.state_enabled)
+        assertRenderedColor(Color.CYAN)
+        glyph.state = intArrayOf()
+        assertRenderedColor(Color.GRAY)
+    }
+
+    @Test
     fun connectedRemovalPreservesAnEnclosedRegionOfTheSameColor() = withImages { images ->
         val source = images.create(Color.WHITE)
         Canvas(source).apply {
@@ -276,6 +302,137 @@ class StickerImageToolsTest {
         assertFalse(view.inTransaction)
         assertFalse(view.canUndo)
         assertEquals(Color.RED, images.keep(view.snapshot()).getPixel(256, 256))
+    }
+
+    @Test
+    fun draggingWithoutAToolMovesSavedPixelsAndCreatesOneUndoStep() = withCanvas { view, images ->
+        val source = images.create()
+        Canvas(source).drawRect(200f, 200f, 280f, 280f, Paint().apply { color = Color.RED })
+        view.setImage(source)
+        gesture(view, 220f to 220f, 320f to 260f)
+        val result = images.keep(view.snapshot())
+        assertEquals(Color.RED, result.getPixel(340, 280))
+        assertEquals(0, Color.alpha(result.getPixel(230, 230)))
+        assertTrue(view.canUndo)
+        assertFalse(view.inTransaction)
+        view.undo()
+        assertEquals(Color.RED, images.keep(view.snapshot()).getPixel(230, 230))
+        assertFalse(view.canUndo)
+        view.redo()
+        assertEquals(Color.RED, images.keep(view.snapshot()).getPixel(340, 280))
+    }
+
+    @Test
+    fun pinchScalesTheOutputAndCancelRestoresTheBaseline() = withCanvas { view, images ->
+        val source = images.create()
+        Canvas(source).drawRect(220f, 220f, 292f, 292f, Paint().apply { color = Color.BLUE })
+        view.setImage(source)
+        view.begin(StickerCanvasView.Tool.TRANSFORM)
+        pinch(view, 176f to 256f, 336f to 256f, 96f to 256f, 416f to 256f)
+        val scaled = images.keep(view.snapshot())
+        assertEquals(Color.BLUE, scaled.getPixel(200, 256))
+        assertEquals(0, Color.alpha(source.getPixel(200, 256)))
+        assertTrue(view.inTransaction)
+        view.cancel()
+        assertArrayEquals(pixels(source), pixels(images.keep(view.snapshot())))
+        assertFalse(view.canUndo)
+    }
+
+    @Test
+    fun aSecondFingerRollsBackAnUnfinishedStrokeAndNeverPaintsAPinch() = withCanvas { view, images ->
+        view.setImage(images.create())
+        view.begin(StickerCanvasView.Tool.DRAW)
+        view.brushColor = Color.MAGENTA
+        pinch(view, 176f to 256f, 336f to 256f, 96f to 256f, 416f to 256f)
+        assertTrue(pixels(images.keep(view.snapshot())).all { Color.alpha(it) == 0 })
+        // After zooming 2x around the center, this stroke maps back to x=228..288.
+        gesture(view, 200f to 256f, 260f to 256f, 320f to 256f)
+        val painted = images.keep(view.snapshot())
+        assertEquals(Color.MAGENTA, painted.getPixel(256, 256))
+        assertEquals(0, Color.alpha(painted.getPixel(340, 256)))
+        view.cancel()
+        assertTrue(pixels(images.keep(view.snapshot())).all { Color.alpha(it) == 0 })
+    }
+
+    @Test
+    fun roundedCropHasTransparentCornersAndUndoRestoresThem() = withCanvas { view, images ->
+        view.setImage(images.create(Color.GREEN))
+        view.begin(StickerCanvasView.Tool.ROUNDED)
+        view.cropRadius = 100f
+        assertTrue(view.apply())
+        val rounded = images.keep(view.snapshot())
+        assertEquals(0, Color.alpha(rounded.getPixel(5, 5)))
+        assertEquals(Color.GREEN, rounded.getPixel(256, 256))
+        assertEquals(Color.GREEN, rounded.getPixel(256, 4))
+        view.undo()
+        assertEquals(Color.GREEN, images.keep(view.snapshot()).getPixel(5, 5))
+    }
+
+    @Test
+    fun continuousBrushStrokeUsesTheChosenColorAndCanBeCancelled() = withCanvas { view, images ->
+        view.setImage(images.create())
+        view.begin(StickerCanvasView.Tool.DRAW)
+        view.brushColor = Color.RED; view.brushSize = 30f
+        gesture(view, 64f to 256f, 128f to 252f, 192f to 256f, 256f to 260f, 320f to 256f, 384f to 252f, 448f to 256f)
+        val drawn = images.keep(view.snapshot())
+        for (x in 70..440 step 10) assertTrue("Stroke must be continuous at $x", Color.alpha(drawn.getPixel(x, 256)) > 0)
+        assertTrue(pixels(drawn).any { Color.red(it) > 200 && Color.alpha(it) > 200 })
+        assertTrue(view.apply()); view.undo()
+        assertTrue(pixels(images.keep(view.snapshot())).all { Color.alpha(it) == 0 })
+    }
+
+    @Test
+    fun pinchingKeepsTheExistingCropSelectionAndDoesNotChangeItsSavedPixels() = withCanvas { view, images ->
+        val source = images.create(Color.GREEN)
+        Canvas(source).drawRect(128f, 128f, 384f, 384f, Paint().apply { color = Color.RED })
+        view.setImage(source)
+        view.begin(StickerCanvasView.Tool.RECT)
+        gesture(view, 128f to 128f, 384f to 384f)
+        pinch(view, 176f to 256f, 336f to 256f, 96f to 256f, 416f to 256f)
+        assertTrue(view.apply())
+        assertEquals(Color.RED, images.keep(view.snapshot()).getPixel(16, 16))
+        assertEquals(Color.RED, images.keep(view.snapshot()).getPixel(496, 496))
+        view.undo()
+        assertArrayEquals(pixels(source), pixels(images.keep(view.snapshot())))
+    }
+
+    @Test
+    fun directPinchAndActivePointerHandoffSaveOneContinuousTransform() = withCanvas { view, images ->
+        val source = images.create()
+        Canvas(source).drawRect(220f, 220f, 292f, 292f, Paint().apply { color = Color.BLUE })
+        view.setImage(source)
+        pinch(view, 176f to 256f, 336f to 256f, 96f to 256f, 416f to 256f, 456f to 276f)
+        val result = images.keep(view.snapshot())
+        assertEquals(Color.BLUE, result.getPixel(235, 276))
+        assertEquals(0, Color.alpha(result.getPixel(195, 256)))
+        assertFalse(view.inTransaction)
+        assertTrue(view.canUndo)
+        view.undo()
+        assertArrayEquals(pixels(source), pixels(images.keep(view.snapshot())))
+        assertFalse(view.canUndo)
+    }
+
+    private fun pinch(view: StickerCanvasView, first: Pair<Float, Float>, second: Pair<Float, Float>, endFirst: Pair<Float, Float>, endSecond: Pair<Float, Float>, continuedSecond: Pair<Float, Float>? = null) {
+        val down = SystemClock.uptimeMillis()
+        fun send(action: Int, points: List<Pair<Float, Float>>, tick: Int) {
+            val properties = Array(points.size) { i -> MotionEvent.PointerProperties().apply { id = if (i == 0) 3 else 7; toolType = MotionEvent.TOOL_TYPE_FINGER } }
+            val coords = Array(points.size) { i -> MotionEvent.PointerCoords().apply { x = points[i].first + 64f; y = points[i].second; pressure = 1f; size = 1f } }
+            val event = MotionEvent.obtain(down, down + tick * 20L, action, points.size, properties, coords, 0, 0, 1f, 1f, 0, 0, android.view.InputDevice.SOURCE_TOUCHSCREEN, 0)
+            try { assertTrue(view.onTouchEvent(event)) } finally { event.recycle() }
+        }
+        send(MotionEvent.ACTION_DOWN, listOf(first), 0)
+        send(MotionEvent.ACTION_POINTER_DOWN or (1 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT), listOf(first, second), 1)
+        send(MotionEvent.ACTION_MOVE, listOf(endFirst, endSecond), 2)
+        // Lift the active finger first to exercise non-zero pointer IDs and handoff.
+        send(MotionEvent.ACTION_POINTER_UP, listOf(endFirst, endSecond), 3)
+        fun remaining(action: Int, point: Pair<Float, Float>, tick: Int) {
+            val property = MotionEvent.PointerProperties().apply { id = 7; toolType = MotionEvent.TOOL_TYPE_FINGER }
+            val coordinate = MotionEvent.PointerCoords().apply { x = point.first + 64f; y = point.second; pressure = 1f; size = 1f }
+            val event = MotionEvent.obtain(down, down + tick * 20L, action, 1, arrayOf(property), arrayOf(coordinate), 0, 0, 1f, 1f, 0, 0, android.view.InputDevice.SOURCE_TOUCHSCREEN, 0)
+            try { assertTrue(view.onTouchEvent(event)) } finally { event.recycle() }
+        }
+        if (continuedSecond != null) remaining(MotionEvent.ACTION_MOVE, continuedSecond, 4)
+        remaining(MotionEvent.ACTION_UP, continuedSecond ?: endSecond, 5)
     }
 
     private class Images {

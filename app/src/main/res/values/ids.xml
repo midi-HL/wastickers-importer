@@ -1,0 +1,4 @@
+<resources>
+    <item name="nav_library" type="id" />
+    <item name="nav_import" type="id" />
+</resources>

@@ -6,7 +6,7 @@
     style="@style/Widget.App.Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp">
+    android:layout_marginBottom="16dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -17,6 +17,8 @@
             style="@style/Widget.App.StickerCard"
             android:layout_width="72dp"
             android:layout_height="72dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
@@ -25,6 +27,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:contentDescription="@string/app_name"
+                android:padding="8dp"
                 android:scaleType="fitCenter" />
         </com.google.android.material.card.MaterialCardView>
 
@@ -32,7 +35,9 @@
             android:id="@+id/pack_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="16dp"
+            android:ellipsize="end"
+            android:maxLines="2"
             android:textAppearance="@style/TextAppearance.App.Title"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/pack_icon_card"
@@ -42,8 +47,10 @@
             android:id="@+id/pack_author"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="16dp"
             android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:textAppearance="@style/TextAppearance.App.Body"
             android:textColor="?attr/colorOnSurfaceVariant"
             app:layout_constraintEnd_toEndOf="parent"
@@ -54,59 +61,96 @@
             android:id="@+id/pack_count"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="16dp"
             android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:textAppearance="@style/TextAppearance.App.Caption"
+            android:textColor="?attr/colorOnSurfaceVariant"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/pack_icon_card"
             app:layout_constraintTop_toBottomOf="@id/pack_author" />
 
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/pack_header_bottom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="pack_icon_card,pack_count" />
+
         <TextView
             android:id="@+id/pack_source_badge"
             android:layout_width="wrap_content"
-            android:layout_height="32dp"
-            android:layout_marginTop="12dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:background="@drawable/bg_source_badge"
+            android:ellipsize="end"
             android:gravity="center_vertical"
+            android:maxLines="1"
+            android:minHeight="32dp"
             android:paddingStart="12dp"
+            android:paddingTop="6dp"
             android:paddingEnd="12dp"
+            android:paddingBottom="6dp"
             android:textAppearance="@style/TextAppearance.App.Caption"
             android:textColor="?attr/colorOnSecondaryContainer"
+            app:layout_constrainedWidth="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/pack_icon_card" />
+            app:layout_constraintTop_toBottomOf="@id/pack_header_bottom" />
 
         <LinearLayout
             android:id="@+id/pack_primary_actions"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
             android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/pack_source_badge">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/pack_add"
-                style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="0dp"
-                android:layout_height="44dp"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:ellipsize="end"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:maxLines="2"
                 android:minWidth="0dp"
-                android:text="@string/again_add" />
+                android:minHeight="56dp"
+                android:paddingStart="16dp"
+                android:paddingTop="12dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="12dp"
+                android:text="@string/add_to_whatsapp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/pack_export"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="0dp"
-                android:layout_height="44dp"
-                android:layout_weight="1"
-                android:minWidth="0dp"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minWidth="64dp"
+                android:minHeight="56dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
                 android:text="@string/export_wastickers" />
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="end|center_vertical"
             android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/pack_primary_actions">
 
@@ -114,20 +158,32 @@
                 android:id="@+id/pack_refetch"
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="0dp"
-                android:layout_height="44dp"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:ellipsize="end"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:maxLines="2"
                 android:minWidth="0dp"
+                android:minHeight="48dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
                 android:text="@string/refetch"
                 android:visibility="gone" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/pack_delete"
                 style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="0dp"
-                android:layout_height="44dp"
-                android:layout_weight="1"
-                android:minWidth="0dp"
-                android:text="@string/delete" />
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minWidth="64dp"
+                android:minHeight="48dp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:text="@string/delete"
+                android:textColor="?attr/colorError" />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

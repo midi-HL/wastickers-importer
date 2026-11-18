@@ -101,8 +101,18 @@ class MainActivity : BaseActivity() {
             openFile.launch(arrayOf("*/*"))
         }
         findViewById<MaterialButton>(R.id.empty_open_button).setOnClickListener {
-            openFile.launch(arrayOf("*/*"))
+            findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.main_navigation).selectedItemId = R.id.nav_import
         }
+        val nav = findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.main_navigation)
+        nav.menu.add(Menu.NONE, R.id.nav_library, 0, R.string.nav_library).setIcon(R.drawable.ic_empty_sticker)
+        nav.menu.add(Menu.NONE, R.id.nav_import, 1, R.string.nav_import).setIcon(R.drawable.ic_open_file)
+        nav.setOnItemSelectedListener { selectPage(it.itemId); true }
+        nav.selectedItemId = savedInstanceState?.getInt("page", R.id.nav_library) ?: R.id.nav_library
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_root)) { view, insets ->
+            val bars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars() or androidx.core.view.WindowInsetsCompat.Type.ime())
+            view.setPadding(bars.left, bars.top, bars.right, bars.bottom); androidx.core.view.WindowInsetsCompat.CONSUMED
+        }
+        recycler.itemAnimator = null
         tgFetch.setOnClickListener {
             if (telegramJob?.isActive == true) return@setOnClickListener
             startTelegramFetch(tgInput.text?.toString().orEmpty())
@@ -115,6 +125,15 @@ class MainActivity : BaseActivity() {
             showResult(getString(R.string.telegram_cancelled))
         }
         handleIncomingIntent(intent)
+    }
+
+    private fun selectPage(id: Int) {
+        findViewById<View>(R.id.library_page).visibility = if (id == R.id.nav_library) View.VISIBLE else View.GONE
+        findViewById<View>(R.id.import_page).visibility = if (id == R.id.nav_import) View.VISIBLE else View.GONE
+    }
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putInt("page", findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.main_navigation).selectedItemId)
+        super.onSaveInstanceState(outState)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -193,6 +212,7 @@ class MainActivity : BaseActivity() {
             progress.visibility = View.GONE
             result.fold(
                 onSuccess = { imported ->
+                    findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.main_navigation).selectedItemId = R.id.nav_library
                     reload()
                     val warnings = imported.warnings.joinToString("\n")
                     showResult(getString(R.string.import_saved, imported.manifests.size) + if (warnings.isBlank()) "" else "\n$warnings")
@@ -220,6 +240,7 @@ class MainActivity : BaseActivity() {
                 }.show()
             return
         }
+        findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.main_navigation).selectedItemId = R.id.nav_import
         tgInput.setText(shortName)
         cancelled = false
         setTelegramBusy(true)
@@ -242,6 +263,7 @@ class MainActivity : BaseActivity() {
             result.fold(
                 onSuccess = { imported ->
                     ImageLoaders.clear()
+                    findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.main_navigation).selectedItemId = R.id.nav_library
                     reload()
                     showResult(getString(R.string.telegram_import_done, imported.manifests.size) +
                         if (imported.warnings.isEmpty()) "" else "\n" + imported.warnings.joinToString("\n"))
@@ -279,9 +301,9 @@ class MainActivity : BaseActivity() {
     private fun reload() {
         val packs = PackRepository.manifests(this)
         adapter.submit(packs)
+        findViewById<TextView>(R.id.library_summary).text = getString(R.string.library_summary, packs.size, packs.sumOf { it.stickerCount })
         emptyState.visibility = if (packs.isEmpty()) View.VISIBLE else View.GONE
         recycler.visibility = if (packs.isEmpty()) View.GONE else View.VISIBLE
-        recycler.post { UiMotion.staggerIn(recycler.childrenSequence(), this) }
     }
 
     private fun openPreview(identifier: String) {

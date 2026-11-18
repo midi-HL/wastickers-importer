@@ -40,10 +40,21 @@ class StudioUiTest {
 
         val monitor = instrumentation.addMonitor(StickerEditorActivity::class.java.name, null, false)
         try {
-            clickButton(studio, R.string.studio_text_sticker)
+            clickButton(studio, R.string.studio_add_sticker)
+            clickSourceOption(studio.getString(R.string.studio_text_sticker))
             val editor = instrumentation.waitForMonitorWithTimeout(monitor, TIMEOUT_MS)
                 ?: throw AssertionError("文字贴纸应打开编辑器")
             fixture.track(editor)
+            await("文字入口应直接进入文字工具") { editorCanvas(editor as StickerEditorActivity).tool == StickerCanvasView.Tool.TEXT }
+            onMain {
+                assertTrue(descendants(editor.window.decorView).filterIsInstance<TextInputEditText>().any { it.hasFocus() })
+            }
+            clickButton(editor, R.string.editor_cancel)
+            clickButton(editor, R.string.editor_text)
+            await("从工具栏进入文字也应自动聚焦输入框") {
+                editorCanvas(editor as StickerEditorActivity).tool == StickerCanvasView.Tool.TEXT &&
+                    descendants(editor.window.decorView).filterIsInstance<TextInputEditText>().any { it.hasFocus() }
+            }
             onMain {
                 editor.setResult(Activity.RESULT_CANCELED)
                 editor.finish()
@@ -174,6 +185,127 @@ class StudioUiTest {
         assertEquals("重建后保留作者", draft(work).getString("author"))
     }
 
+    @Test
+    fun staticImportOpensEditorImmediatelyAndSavingAdvancesToTheNextImage() = withFixture { fixture ->
+        val source = fixture.createPhoto()
+        val monitor = instrumentation.addMonitor(StickerEditorActivity::class.java.name, null, false)
+        try {
+            val studio = fixture.launch(media = arrayListOf(android.net.Uri.fromFile(source), android.net.Uri.fromFile(source)))
+            val work = fixture.workspace(studio)
+            val first = instrumentation.waitForMonitorWithTimeout(monitor, TIMEOUT_MS) as? StickerEditorActivity
+                ?: throw AssertionError("导入后必须立即进入编辑器")
+            fixture.track(first)
+            await("第一张应完成加载") { editorCanvas(first).isEnabled }
+            assertFalse(first.intent.getBooleanExtra("start_text", false))
+            onMain { pinchImageToHalf(editorCanvas(first)) }
+            val nextMonitor = instrumentation.addMonitor(StickerEditorActivity::class.java.name, null, false)
+            val second = try {
+                clickButton(first, R.string.editor_save)
+                instrumentation.waitForMonitorWithTimeout(nextMonitor, TIMEOUT_MS) as? StickerEditorActivity
+                    ?: throw AssertionError("保存后必须继续编辑下一张")
+            } finally {
+                instrumentation.removeMonitor(nextMonitor)
+            }
+            fixture.track(second)
+            assertNotSame(first, second)
+            await("第二张应完成加载") { editorCanvas(second).isEnabled }
+            clickButton(second, R.string.editor_save)
+            await("最后一张保存后应回到工作室") { second.isDestroyed && draft(work).optInt("editing") == -1 }
+            assertEquals(2, draft(work).getJSONArray("items").length())
+            assertEquals(0, draft(work).getJSONArray("edit_queue").length())
+            for (i in 0..1) assertEquals(work.canonicalFile, File(draft(work).getJSONArray("items").getJSONObject(i).getString("path")).canonicalFile.parentFile)
+            val saved = android.graphics.BitmapFactory.decodeFile(draft(work).getJSONArray("items").getJSONObject(0).getString("path"))
+            try {
+                assertEquals(0, android.graphics.Color.alpha(saved.getPixel(16, 16)))
+                assertEquals(android.graphics.Color.RED, saved.getPixel(256, 256))
+            } finally { saved.recycle() }
+            clickButton(studio, R.string.studio_discard)
+            clickDialogText(studio.getString(R.string.delete_confirm))
+            await("丢弃应清理本次导入与编辑输出") { studio.isDestroyed && !work.exists() }
+        } finally { instrumentation.removeMonitor(monitor) }
+    }
+
+    @Test
+    fun splitArchiveImportReturnsToTheVisibleLibrary() = withFixture { fixture ->
+        val archive = fixture.createSplitArchive()
+        val main = instrumentation.startActivitySync(
+            Intent(fixture.context, MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+        ) as MainActivity
+        fixture.track(main)
+        onMain {
+            main.findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.main_navigation)
+                .selectedItemId = R.id.nav_import
+            assertEquals(View.VISIBLE, main.findViewById<View>(R.id.import_page).visibility)
+            instrumentation.callActivityOnNewIntent(main, Intent(Intent.ACTION_SEND).apply {
+                type = "application/octet-stream"
+                putExtra(Intent.EXTRA_STREAM, android.net.Uri.fromFile(archive))
+                putExtra(Intent.EXTRA_TITLE, "split.wastickers")
+            })
+        }
+        await("拆包导入成功后应回到可见的贴纸库") {
+            var ready = false
+            onMain {
+                val navigation = main.findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.main_navigation)
+                ready = navigation.selectedItemId == R.id.nav_library &&
+                    main.findViewById<View>(R.id.library_page).visibility == View.VISIBLE &&
+                    main.findViewById<View>(R.id.import_page).visibility == View.GONE &&
+                    main.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.pack_recycler).visibility == View.VISIBLE
+            }
+            ready
+        }
+        assertEquals(listOf(28, 3), fixture.importedPackIds.map { PackRepository.get(fixture.context, it)!!.stickerCount })
+    }
+
+    @Test
+    fun stickerGridWrapsDownwardsAndMetadataUsesOutlinedInputs() = withFixture { fixture ->
+        val packId = fixture.createPack()
+        val studio = fixture.launch(identifier = packId)
+        onMain {
+            val grids = descendants(studio.window.decorView).filterIsInstance<android.widget.GridLayout>().single()
+            val inputs = descendants(studio.window.decorView).filterIsInstance<com.google.android.material.textfield.TextInputLayout>().toList()
+            assertEquals(2, inputs.size)
+            assertTrue(inputs.all { it.boxBackgroundMode == com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE })
+            assertEquals(3, grids.columnCount)
+        }
+        repeat(4) {
+            onMain { StudioActivity::class.java.getDeclaredMethod("actions", Int::class.javaPrimitiveType).apply { isAccessible = true }.invoke(studio, 0) }
+            clickDialogText(studio.getString(R.string.studio_duplicate))
+        }
+        onMain {
+            val grid = descendants(studio.window.decorView).filterIsInstance<android.widget.GridLayout>().single()
+            assertEquals(5, grid.childCount)
+            assertEquals(grid.getChildAt(0).top, grid.getChildAt(2).top)
+            assertTrue(grid.getChildAt(3).top > grid.getChildAt(0).bottom)
+            assertTrue((0 until grid.childCount).all { grid.getChildAt(it).right <= grid.width })
+        }
+    }
+
+    private fun pinchImageToHalf(view: StickerCanvasView) {
+        val side = minOf(view.width - view.paddingLeft - view.paddingRight, view.height - view.paddingTop - view.paddingBottom).toFloat()
+        assertTrue("Canvas must have visible space", side > 0f)
+        val left = view.paddingLeft + (view.width - view.paddingLeft - view.paddingRight - side) / 2f
+        val top = view.paddingTop + (view.height - view.paddingTop - view.paddingBottom - side) / 2f
+        val down = SystemClock.uptimeMillis()
+        fun send(action: Int, xs: List<Float>, tick: Int) {
+            val properties = Array(xs.size) { i -> android.view.MotionEvent.PointerProperties().apply { id = if (i == 0) 3 else 7; toolType = android.view.MotionEvent.TOOL_TYPE_FINGER } }
+            val coords = Array(xs.size) { i -> android.view.MotionEvent.PointerCoords().apply { x = left + xs[i] * side; y = top + side / 2; pressure = 1f; size = 1f } }
+            val event = android.view.MotionEvent.obtain(down, down + tick * 20L, action, xs.size, properties, coords, 0, 0, 1f, 1f, 0, 0, android.view.InputDevice.SOURCE_TOUCHSCREEN, 0)
+            try { assertTrue(view.dispatchTouchEvent(event)) } finally { event.recycle() }
+        }
+        send(android.view.MotionEvent.ACTION_DOWN, listOf(.25f), 0)
+        send(android.view.MotionEvent.ACTION_POINTER_DOWN or (1 shl android.view.MotionEvent.ACTION_POINTER_INDEX_SHIFT), listOf(.25f, .75f), 1)
+        send(android.view.MotionEvent.ACTION_MOVE, listOf(.375f, .625f), 2)
+        send(android.view.MotionEvent.ACTION_POINTER_UP or (1 shl android.view.MotionEvent.ACTION_POINTER_INDEX_SHIFT), listOf(.375f, .625f), 3)
+        send(android.view.MotionEvent.ACTION_UP, listOf(.375f), 4)
+    }
+
+    private fun editorCanvas(activity: StickerEditorActivity): StickerCanvasView {
+        lateinit var view: StickerCanvasView
+        onMain { view = descendants(activity.window.decorView).filterIsInstance<StickerCanvasView>().single() }
+        return view
+    }
+
     private inner class Fixture {
         val context: Context = instrumentation.targetContext
         val preferences = context.getSharedPreferences("studio_sessions", Context.MODE_PRIVATE)
@@ -186,6 +318,7 @@ class StudioUiTest {
         private val hadActiveNew = preferences.contains("active_new")
         private var ownsPack = false
         private var ownsCache = false
+        val importedPackIds = mutableListOf<String>()
         private val application = context.applicationContext as Application
         private val lifecycle = object : Application.ActivityLifecycleCallbacks {
             override fun onActivityCreated(activity: Activity, state: Bundle?) {
@@ -224,7 +357,8 @@ class StudioUiTest {
             draftKey: String? = reserveWorkspace().name,
             identifier: String? = null,
             draftName: String? = null,
-            draftAuthor: String? = null
+            draftAuthor: String? = null,
+            media: ArrayList<android.net.Uri>? = null
         ): StudioActivity {
             // Each launch must create an instance; NEW_TASK alone can only bring the existing root to front.
             val intent = Intent(context, StudioActivity::class.java)
@@ -234,6 +368,7 @@ class StudioUiTest {
             identifier?.let { intent.putExtra("identifier", it) }
             draftName?.let { intent.putExtra("draft_name", it) }
             draftAuthor?.let { intent.putExtra("draft_author", it) }
+            media?.let { intent.putParcelableArrayListExtra("media_uris", it) }
             val activity = instrumentation.startActivitySync(intent) as StudioActivity
             track(activity)
             instrumentation.waitForIdleSync()
@@ -249,6 +384,42 @@ class StudioUiTest {
                 workspaces += directory
             }
             return directory
+        }
+
+        fun createPhoto(): File {
+            cache.mkdirs(); ownsCache = true
+            val file = File(cache, "photo.png")
+            val bitmap = Bitmap.createBitmap(512, 512, Bitmap.Config.ARGB_8888).apply { eraseColor(android.graphics.Color.RED) }
+            try { StickerImageTools.writePng(bitmap, file) } finally { bitmap.recycle() }
+            return file
+        }
+
+        fun createSplitArchive(): File {
+            val source = createPhoto().readBytes()
+            val tray = java.io.ByteArrayOutputStream().use { stream ->
+                val bitmap = Bitmap.createBitmap(96, 96, Bitmap.Config.ARGB_8888)
+                try { assertTrue(bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)) }
+                finally { bitmap.recycle() }
+                stream.toByteArray()
+            }
+            val archive = File(cache, "split.wastickers")
+            java.util.zip.ZipOutputStream(archive.outputStream()).use { zip ->
+                fun entry(name: String, bytes: ByteArray) {
+                    zip.putNextEntry(java.util.zip.ZipEntry(name))
+                    zip.write(bytes)
+                    zip.closeEntry()
+                }
+                entry("title.txt", packId.toByteArray())
+                entry("author.txt", "UI test".toByteArray())
+                entry("tray.png", tray)
+                repeat(31) { index -> entry("sticker_$index.png", source) }
+            }
+            val hash = io.github.midihl.wastickersimporter.model.StickerNames.shortHash(archive.readBytes())
+            importedPackIds += (1..2).map { part ->
+                io.github.midihl.wastickersimporter.model.StickerNames.identifier(packId, hash, "-part${part}of2")
+            }
+            assertTrue(importedPackIds.none { PackRepository.packDir(context, it).exists() })
+            return archive
         }
 
         fun createPack(): String {
@@ -282,6 +453,7 @@ class StudioUiTest {
                 if (activities.all { it.isDestroyed }) {
                     workspaces.forEach { it.deleteRecursively() }
                     if (ownsPack) PackRepository.delete(context, packId)
+                    importedPackIds.forEach { PackRepository.delete(context, it) }
                     if (ownsCache) cache.deleteRecursively()
                 }
                 val editor = preferences.edit()
@@ -351,6 +523,15 @@ class StudioUiTest {
             val root = instrumentation.uiAutomation.rootInActiveWindow
             root?.findAccessibilityNodeInfosByText(text).orEmpty().any { it.text?.toString() == text }
         }
+    }
+
+    private fun clickSourceOption(text: String) {
+        assertDialogText(text)
+        val root = instrumentation.uiAutomation.rootInActiveWindow ?: throw AssertionError("Source sheet missing")
+        var node = root.findAccessibilityNodeInfosByText(text).first { it.text?.toString() == text || it.contentDescription?.toString()?.startsWith(text) == true }
+        while (!node.isClickable) node = node.parent ?: throw AssertionError("Source option must be clickable")
+        assertTrue(node.performAction(AccessibilityNodeInfo.ACTION_CLICK))
+        instrumentation.waitForIdleSync()
     }
 
     private fun clickDialogText(text: String) {

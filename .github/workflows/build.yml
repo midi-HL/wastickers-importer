@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      VERSION_NAME: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '3.0.0' }}
+      VERSION_NAME: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '3.1.0' }}
       VERSION_CODE: ${{ github.run_number }}
       SIGNED: ${{ secrets.KEYSTORE_BASE64 != '' && secrets.KEYSTORE_PASSWORD != '' && secrets.KEY_ALIAS != '' && secrets.KEY_PASSWORD != '' }}
     steps:
@@ -152,7 +152,7 @@ jobs:
       - name: Build side-by-side device validation package
         run: |
           ./gradlew --no-daemon -PPREVIEW_APPLICATION_ID=io.github.midihl.wastickersimporter.studiotestv3 \
-            -PVERSION_NAME=3.0.0 -PVERSION_CODE="$VERSION_CODE" assembleDebug assembleDebugAndroidTest
+            -PVERSION_NAME=3.1.0 -PVERSION_CODE="$VERSION_CODE" assembleDebug assembleDebugAndroidTest
           mkdir -p artifacts/preview
           cp app/build/outputs/apk/debug/*x86_64*.apk artifacts/preview/
           cp app/build/outputs/apk/androidTest/debug/*.apk artifacts/preview/

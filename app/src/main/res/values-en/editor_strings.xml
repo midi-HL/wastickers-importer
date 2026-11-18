@@ -37,7 +37,7 @@
     <string name="editor_mirror_x">Flip horizontal</string>
     <string name="editor_mirror_y">Flip vertical</string>
     <string name="editor_scale">Scale %</string>
-    <string name="editor_brightness">Brightness (100 = original)</string>
+    <string name="editor_brightness">Brightness</string>
     <string name="editor_saturation">Saturation %</string>
     <string name="editor_white">White</string>
     <string name="editor_black">Black</string>
@@ -55,4 +55,20 @@
     <string name="editor_unsaved_question">Save to the studio or keep a draft to continue later?</string>
     <string name="editor_keep_draft">Keep draft</string>
     <string name="editor_discard">Discard changes</string>
+    <string name="editor_tools">Editing tools</string>
+    <string name="editor_position">Move / scale</string>
+    <string name="editor_rounded">Rounded crop</string>
+    <string name="editor_corner_radius">Corner radius</string>
+    <string name="editor_gesture_intro">Drag to move · Pinch to scale · Choose a tool below</string>
+    <string name="editor_transform_gesture_hint">Drag to move the image · Pinch to scale</string>
+    <string name="editor_crop_gesture_hint">Drag to select · Use two fingers to inspect details</string>
+    <string name="editor_brush_gesture_hint">Draw with one finger · Zoom and pan with two</string>
+    <string name="editor_remove_gesture_hint">Tap a similar-color background · Pinch to inspect</string>
+    <string name="editor_text_gesture_hint">Drag to move text · Pinch to resize text</string>
+    <string name="editor_rounded_note">Starts with the whole image. Drag to select another area and adjust its corners.</string>
+    <string name="editor_transform_note">Moving and scaling change the saved image. Content outside the canvas is clipped.</string>
+    <string name="editor_remove_note">Removes connected similar colors. Refine complex edges with the eraser.</string>
+    <string name="editor_reset_position">Reset position</string>
+    <string name="editor_reset_view">Reset view</string>
+    <string name="editor_text_empty">Enter some text or emoji first</string>
 </resources>

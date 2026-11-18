@@ -61,13 +61,20 @@ class PreviewActivity : BaseActivity() {
         addButton = findViewById(R.id.add_button)
         nameInput.setText(pack.name)
         authorInput.setText(pack.publisher)
+        renderMetadata()
+        findViewById<MaterialButton>(R.id.pack_edit_details).setOnClickListener { editMetadata() }
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.preview_root)) { view, insets ->
+            val bars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+            view.setPadding(bars.left, bars.top, bars.right, bars.bottom); insets
+        }
         findViewById<TextView>(R.id.pack_count).text = getString(R.string.pack_sticker_count, pack.stickerCount)
         val tray = findViewById<ImageView>(R.id.tray_image)
         ImageLoaders.loadSticker(tray, this, pack, pack.trayImageFile)
         val grid = findViewById<RecyclerView>(R.id.sticker_grid)
         grid.layoutManager = GridLayoutManager(this, 3)
         grid.adapter = StickerAdapter(pack)
-        grid.post { UiMotion.staggerIn(grid.childrenSequence(), this) }
+        grid.itemAnimator = null
+        findViewById<View>(R.id.preview_workspace).addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateWorkspace() }
         addButton.setOnClickListener { saveMetadataAndAdd() }
         findViewById<MaterialButton>(R.id.preview_export_button).setOnClickListener {
             pendingExport = pack
@@ -95,6 +102,62 @@ class PreviewActivity : BaseActivity() {
                 )
             }
         }
+    }
+
+    private fun updateWorkspace() {
+        val workspace = findViewById<android.widget.LinearLayout>(R.id.preview_workspace)
+        if (workspace.height <= 0) return
+        val summary = findViewById<android.widget.ScrollView>(R.id.preview_summary_scroll)
+        val content = findViewById<View>(R.id.preview_content)
+        val heading = findViewById<View>(R.id.sticker_grid_heading)
+        val dp = resources.displayMetrics.density
+        val wide = workspace.width >= 560 * dp && workspace.width > workspace.height * 1.35f
+        val compact = !wide && workspace.height < 360 * dp
+        workspace.orientation = if (wide) android.widget.LinearLayout.HORIZONTAL else android.widget.LinearLayout.VERTICAL
+        heading.visibility = if (compact) View.GONE else View.VISIBLE
+        fun size(view: View, width: Int, height: Int, weight: Float = 0f) {
+            val lp = view.layoutParams as android.widget.LinearLayout.LayoutParams
+            if (lp.width != width || lp.height != height || lp.weight != weight) {
+                view.layoutParams = android.widget.LinearLayout.LayoutParams(width, height, weight)
+            }
+        }
+        if (wide) {
+            size(summary, (workspace.width * .44f).toInt().coerceAtMost((340 * dp).toInt()), -1)
+            size(content, 0, -1, 1f)
+        } else {
+            val desired = summary.getChildAt(0).measuredHeight + (16 * dp).toInt()
+            val summaryHeight = if (compact) minOf(desired, (workspace.height - 48 * dp).toInt().coerceAtLeast(0))
+                else minOf(desired, (workspace.height * .5f).toInt())
+            size(summary, -1, summaryHeight)
+            size(content, -1, 0, 1f)
+        }
+    }
+
+    private fun renderMetadata() {
+        findViewById<TextView>(R.id.pack_display_title).text = pack.name
+        findViewById<TextView>(R.id.pack_display_author).text = pack.publisher
+    }
+    private fun editMetadata() {
+        val body = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            val pad = (24 * resources.displayMetrics.density).toInt(); setPadding(pad, pad / 2, pad, 0)
+        }
+        fun field(hint: Int, value: String): TextInputEditText {
+            val box = com.google.android.material.textfield.TextInputLayout(this, null, com.google.android.material.R.attr.textInputOutlinedStyle).apply { setHint(hint) }
+            val input = TextInputEditText(box.context).apply { setText(value); setSingleLine(true); filters = arrayOf(android.text.InputFilter.LengthFilter(128)) }
+            box.addView(input); body.addView(box); return input
+        }
+        val title = field(R.string.pack_name_hint, pack.name)
+        val author = field(R.string.pack_author_hint, pack.publisher)
+        val dialog = MaterialAlertDialogBuilder(this).setTitle(R.string.pack_details_edit).setView(body)
+            .setNegativeButton(android.R.string.cancel, null).setPositiveButton(android.R.string.ok, null).create()
+        dialog.setOnShowListener { dialog.getButton(-1).setOnClickListener {
+            if (title.text.isNullOrBlank()) title.error = getString(R.string.pack_name_hint)
+            else {
+                nameInput.setText(title.text); authorInput.setText(author.text); saveMetadata(); renderMetadata(); dialog.dismiss()
+            }
+        } }
+        dialog.show()
     }
 
     private fun saveMetadata() {

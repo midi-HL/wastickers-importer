@@ -31,4 +31,25 @@
 <string name="studio_whatsapp_min">WhatsApp requires at least 3 stickers in a pack. Please add more first.</string>
 <string name="studio_source">Made by you</string>
 <string name="studio_draft_recovery_failed">The previous draft could not be fully restored. Its files were kept and a new workspace was opened.</string>
+<string name="studio_details">Pack details</string>
+<string name="studio_autosave_note">Drafts save automatically. Continue whenever you like.</string>
+<string name="studio_stickers">Your stickers</string>
+<string name="studio_short_count">%1$d / 30</string>
+<string name="studio_stickers_note">Save from 1 sticker · WhatsApp requires 3 per pack</string>
+<string name="studio_add_sticker">Add sticker</string>
+<string name="studio_empty_title">Make your first sticker</string>
+<string name="studio_empty_note">Choose a photo or video from your gallery,\nor start with text and emoji.</string>
+<string name="studio_choose_media">Photo or video</string>
+<string name="studio_choose_media_note">Choose from your gallery, then edit photos right away</string>
+<string name="studio_choose_text_note">Type text and emoji, then choose a color and size</string>
+<string name="nav_library">Library</string>
+<string name="nav_import">Import</string>
+<string name="library_headline">Make chats your own</string>
+<string name="library_summary">%1$d packs · %2$d stickers</string>
+<string name="import_headline">Keep the stickers you love</string>
+<string name="import_description">Open a local sticker file or import a Telegram pack.</string>
+<string name="import_file_title">Import a file</string>
+<string name="import_file_note">Choose a .wastickers pack to add it to your library.</string>
+<string name="import_telegram_note">Paste a sticker pack link to save and convert it.</string>
+<string name="pack_details_edit">Edit pack details</string>
 </resources>

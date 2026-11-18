@@ -24,6 +24,10 @@ class SettingsActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.settings_root)) { view, insets ->
+            val bars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars() or androidx.core.view.WindowInsetsCompat.Type.ime())
+            view.setPadding(bars.left, bars.top, bars.right, bars.bottom); insets
+        }
         val toolbar = findViewById<MaterialToolbar>(R.id.settings_toolbar)
         setSupportActionBar(toolbar)
         toolbar.setNavigationOnClickListener { finish() }

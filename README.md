@@ -23,7 +23,7 @@ Telegram 机器人（如 `@tgtowabot`）和 sticker-convert 等工具可以把�
 **v2 新增**
 
 - T1 主页 Telegram 链接输入区，支持 `https://t.me/addstickers/<short_name>`、`http`、`telegram.me`、多余路径/查询参数、裸 `short_name`；另注册 `t.me/addstickers/*` 的 `ACTION_VIEW` 入口。
-- T2 设置页 Bot Token 区：掩码输入、显示切换、保存前 `getMe` 验证并回显 `@bot_username`、清除、错误提示；token 存 `EncryptedSharedPreferences` + Android Keystore，不写日志、manifest、导出包或仓库。
+- T2 设置页 Bot Token 区：掩码输入、保存前 `getMe` 验证并回显 `@bot_username`、清除、错误提示；token 存 `EncryptedSharedPreferences` + Android Keystore，不写日志、manifest、导出包或仓库。
 - T3 Bot API 拉取：`getStickerSet` → 每张贴纸 `getFile` → `api.telegram.org/file/...` 下载；显示「第 x / 共 y 张」与下载/转换阶段，可取消，取消后清理缓存不留半成品；单文件下载失败自动重试一次。
 - T4 全格式本地转换：静态 WebP 走 512×512 / ≤100 KB 策略；TGS 解压 Lottie JSON 后用 Lottie-Android 逐帧渲染，再经 libwebp `WebPAnimEncoder`（JNI）编码为动态 WebP；WebM 用 FFmpeg-Kit `min` LGPL 构建解码带 alpha 的 VP9 帧，再走同一编码管线。起始 30 fps，超 500 KB 时降质量并依次降帧率 30→20→15→10 fps；仍超限则点名跳过，跳过后不足 3 张阻止整包。
 - T5 统一存库：Telegram 包与文件包同列表，带「Telegram / 文件」角标；`manifest.json` 兼容旧字段并扩展 `source_type`、`telegram_short_name`、`fetched_at`、`group_id`、`part_index`、`part_count`；同短名重复拉取更新同 identifier 并递增 `image_data_version`；「重新拉取」保留用户改过的包名/作者；大包自动拆成多个 ≤30 张库条目。
@@ -31,8 +31,8 @@ Telegram 机器人（如 `@tgtowabot`）和 sticker-convert 等工具可以把�
 
 **v3 贴纸工作室**
 
-- 系统文件选择器批量导入图片、GIF 和短视频；静态图片采样解码并校正 EXIF 方向。GIF/视频可指定起点和最多 3 秒片段，在本地转换为动态 WebP；静态与动态分别成包。
-- 原生图片编辑器：矩形/圆形/自由裁剪，擦除和恢复笔，连通相似色背景擦除，多行文字与表情定位，涂鸦，彩色描边，旋转、镜像、缩放，亮度和饱和度，撤销/重做。背景擦除不是 AI 主体分割。
+- 系统相册选择器批量导入图片、GIF 和短视频，静态图片选完直接进入编辑器，批量保存后继续下一张；静态图片采样解码并校正 EXIF 方向。GIF/视频可指定起点和最多 3 秒片段，在本地转换为动态 WebP；静态与动态分别成包。
+- 原生图片编辑器：矩形/圆角/圆形/自由裁剪，擦除和恢复笔，连通相似色背景擦除，多行文字与表情定位，平滑涂鸦，彩色描边，一指移动、双指缩放，旋转、镜像，亮度和饱和度，撤销/重做。精修时的双指放大仅改变查看视口；移动缩放工具改变实际保存图像。背景擦除不是 AI 主体分割。
 - 制作草稿自动保留；包内复制、删除、排序、关联表情和封面选择。1–30 张可保存，WhatsApp 仍要求至少 3 张。编辑保存保留包 ID 并递增资源版本，清单原子写入。
 - 静态包经 Telegram 官方 `CREATE_STICKER_PACK` 协议导入，无需 Bot Token。来自 Telegram 的动态包打开原包链接；自制动态 WebP 暂不能直接导入 Telegram，不会静态化冒充动态导出。
 - 保持免费、无广告和 Material You；设置支持跟随系统、简体中文、English。原创卷角笑脸自适应图标，支持主题单色图标。
@@ -45,8 +45,8 @@ Telegram 机器人（如 `@tgtowabot`）和 sticker-convert 等工具可以把�
 
 ### 链路 C：制作自己的贴纸
 
-1. 主页点「制作贴纸」，填写包名和作者，添加图片/GIF/视频，或创建文字贴纸。
-2. 点缩略图进入编辑，选择工具后在画布操作并点「应用」，最后「保存贴纸」。未结束的工具先应用或取消。
+1. 贴纸库点「制作贴纸」，填写包名和作者。统一「添加贴纸」入口可选择图片/视频或纯文字；纯文字直接打开文字输入。
+2. 图片选完自动进入编辑。画布可直接拖动和双指缩放；工具以三列多行显示，选择后在画布操作并点「应用」，最后「保存贴纸」。未结束的工具先应用或取消。
 3. 返回工作室可设置封面、排序、复制、删除和表情。返回自动保留草稿，「丢弃草稿」需要确认。
 4. 「保存贴纸包」后，在预览页添加到 WhatsApp、Telegram 或导出 `.wastickers`；「编辑 / 管理贴纸」可继续修改。
 
@@ -89,14 +89,14 @@ Telegram 机器人（如 `@tgtowabot`）和 sticker-convert 等工具可以把�
 
 ## 7. UI 设计
 
-设计语言参考 Kazumi 的 Material You 信息架构与交互规范，但**没有复制其代码、图标、字体或美术素材**。项目仍是原生 Kotlin + View + Material Components 1.12.0：Android 12+ 动态取色、6 档内置种子色、深色三档、卡片化布局、Extended FAB、stagger 入场、进度条、Snackbar、减少动效时降级。v2 修复了主页大标题与副标题重叠，并给列表补足底部 padding 避免 FAB 遮挡操作区；新增 Telegram 输入卡、进度/取消、来源角标、设置页 Token 区与「关于」卡片。
+v3.1 重置首页、预览、设置、工作室和编辑器：原生 Kotlin + View + Material Components 1.12.0，实色大圆角分区、Outlined 输入、Material Slider、底部「贴纸库 / 导入」导航。Android 12+ 动态取色、6 档内置种子色和深浅主题保留；不使用玻璃模糊或持续动画。贴纸库与预览使用独立 RecyclerView，缩略图双线程解码、内存缓存限制为堆的 1/16 且上限 8 MiB；编辑器横屏双栏，描边/调色在后台合并处理，撤销/重做合计最多 12 张位图。视觉参考原生 Material、Telegram 的分区和圆角比例，未复制其代码或素材；性能以实际设备测量为准。
 
-## 8. 构建方法（GitHub Actions 为唯一编译途径）
+## 8. 构建方法（GitHub Actions 产出正式签名安装包）
 
 `.github/workflows/build.yml`：
 
-- 触发 `push main`、tag `v*`、`workflow_dispatch`；`ubuntu-latest`、JDK 17 temurin、`android-actions/setup-android@v3`、Android SDK 35 / build-tools 35 / NDK `27.0.12077973` / CMake `3.22.1`；仓库内 Gradle Wrapper 8.11.1；Gradle 缓存。
-- 先运行 `scripts/verify-dependencies.py` 校验 vendored libwebp 源码树 SHA256，再 `./gradlew lint test assembleDebug assembleRelease assembleDebugAndroidTest`。额外构建独立 `studiotestv3` 旁装包与对应设备测试 APK；签名材料配置时 debug 和测试 APK 使用固定 CI 签名，支持后续无损更新。
+- 触发 `push main`、tag `v*`、`workflow_dispatch`；`ubuntu-latest`、JDK 17 temurin、`android-actions/setup-android@v3`、Android SDK 35 / build-tools 35 / NDK `27.0.12077973` / CMake `3.22.1`；仓库内 Gradle Wrapper 8.11；Gradle 缓存。
+- 先运行 `scripts/verify-dependencies.py` 检查 vendored libwebp 必需源码与 BSD 许可文本，并输出归一化源码树 SHA256 供追溯（不下载上游归档、不做固定摘要比对），再 `./gradlew lint test assembleDebug assembleRelease assembleDebugAndroidTest`。额外构建独立 `studiotestv3` 旁装包与对应设备测试 APK；签名材料配置时 debug 和测试 APK 使用固定 CI 签名，支持后续无损更新。
 - `versionName` 取 tag（去掉 `v`）/ `gradle.properties`；`versionCode` 取 `GITHUB_RUN_NUMBER`。
 - 有 `KEYSTORE_BASE64`/`KEYSTORE_PASSWORD`/`KEY_ALIAS`/`KEY_PASSWORD` 时用 PKCS12 keystore 签名 release（v1/v2/v3 signing）；无签名材料时 release 未签名且 Job Summary 醒目提示以 debug 包为准，不因此失败。
 - ABI splits 产出 `armeabi-v7a`、`arm64-v8a`、`x86`、`x86_64` 与 `universal` 各 debug/release APK；Job Summary 列版本号、全部文件名、每个 APK 体积、签名状态与权限集合。
@@ -142,7 +142,7 @@ base64 -w 0 "$HOME/release.jks" | xclip -selection clipboard  # Linux
 
 | 组件 | 版本 | 许可证 | 用途 | 校验值 / 来源 |
 | --- | --- | --- | --- | --- |
-| libwebp | 1.4.0 | BSD-3-Clause | WebPAnimEncoder / libwebpmux，JNI 动态 WebP | 上游 tar.gz SHA256 `61f873ec69e3be1b99535634340d5bde750b2e4447caa1db9f61be3fd49ab1e5`；vendored tree `60f32d5a4ede2b0db96a0da09e6ced94007dd07f4f83808017d54357fff084dd` |
+| libwebp | 1.4.0 | BSD-3-Clause | WebPAnimEncoder / libwebpmux，JNI 动态 WebP | 上游 tar.gz SHA256 `61f873ec69e3be1b99535634340d5bde750b2e4447caa1db9f61be3fd49ab1e5`；归一化 vendored tree `668133ea1462b4b87d9652f85513408c82a6dfc35ba1d91ac7a1b37e8916e219` |
 | Lottie-Android | 6.7.1 | Apache-2.0 | TGS / Lottie 逐帧渲染 | AAR SHA256 `4423cb34732018f0ef7262fdf6c4ae0b5aaea0ec05f55c3eef7e90cb100f1da9` |
 | FFmpeg-Kit min | 6.0-2.LTS | LGPL-3.0 | WebM VP9 alpha 解码 | AAR SHA256 `a05fe92c90f02f0369d455d212a39117838f25840af4319887fb877307cd490f` |
 | APNG4Android awebpencoder | 3.0.5 | Apache-2.0 | Java 动态 WebP mux 回退 | AAR SHA256 `4ea6f58d90483106a98d4eac6b73c36f8fe96d01ddaf40a308fe4d274ae0e725` |
@@ -175,6 +175,22 @@ sticker-convert（GPL-2.0-or-later）转换流程与 TGS 夹具概念被登记�
 | 错误与安全：错 token、错包名、取消清理、token 不出现在日志/manifest/导出 | MuMu/静态检查：错链接明确提示、未装 WhatsApp 明确提示；设备 `files/cache/导出 ZIP` 全量 grep 无 token 明文；取消按钮与清理代码已实现，早取消窗口待真机验收 |
 | 大包进度可见可取消、拆分逐组可导入 | 64 张静态包在 MuMu 显示「第 1/64 张」到完成 Snackbar、三包卡片可见；64 张静态 WebP 最大 50.2 KB、无 >100 KB；WhatsApp 导入待真机 |
 | U0–U7 动态取色/深浅色/动效/高刷 | 真机项待仓库主验收；截图中的标题重叠与 FAB 遮挡已在布局层修复 |
+
+### v3.0.0 制作工作室验收（2026-11-17）
+
+- 最终应用提交 `497a443`，GitHub Actions [44063928076](https://github.com/midi-HL/wastickers-importer/actions/runs/44063928076) 成功，版本 `3.0.0 / 32`。签名 release 与独立测试包均来自 Actions；发布版已无损覆盖安装到模拟器，旧包保留。
+- JVM 单元测试 debug/release 各 9 项通过；lint 无阻断错误，保留 64 条警告。最终 CI 测试包在 API35 模拟器运行 **34 项设备测试全部通过**：12 图像/画布、17 存库/媒体/归档、5 工作室 UI/生命周期。
+- 设备用例包含真实 GIF/MP4 转码、1/2/3 张归档回读与 emoji/顺序/封面保留、31/32/61 张拆包、EXIF、大图采样、草稿损坏保留、双会话隔离及重建恢复。手工复查图片/GIF 系统选择、去背景、保存、网格、新图标、中英文/深浅色及系统栏。
+- 模拟器未安装 WhatsApp/Telegram，已验证缺少目标应用时明确提示；真实目标应用中的接收确认、实际发送及播放仍需手机验收。不宣称覆盖所有设备或零缺陷。
+- 手机包位于本地 `artifacts/studio/phone-test-v3.0.0/`，内有 arm64-v8a、universal 签名 APK 与验收说明。新宣传片等待手机验收后再制作。
+
+### v3.1.0 界面与编辑器验收（2026-11-18）
+
+- 本轮重做首页、工作室、编辑器、预览与设置。编译前完成全部应用变更的代码/UI 主审和独立只读复核；修正深色自绘图标着色、导入成功后返回贴纸库、最近草稿会话身份及文字输入自动聚焦。
+- 本地 `3.1.0 / 33` 独立测试包通过 lint（0 错误、63 条警告）、debug/release JVM 单测各 9 项，以及 **45 项设备回归**（70.473 秒）：20 图像/画布/图标、17 媒体/存库/归档、8 工作室/导航/生命周期。
+- 回归覆盖真实多指 ID 与主指抬起交接、双指缩放后的 PNG 像素、笔触回滚、平滑涂鸦、圆角裁剪、批量连续编辑、草稿会话恢复、文字两入口聚焦、图标主题/禁用态，以及 31 张归档拆为 28+3 后贴纸库可见。
+- 原 MuMu API35 保持物理 720×1280、density 320，原主应用和数据保留。手工复查深色工具/添加面板图标、系统相册选择静态图片后自动编辑、文字保存返回工作室与横屏双栏；最新云端产物的结果另以对应 Actions 运行及设备日志为准。
+- 模拟器仅有的输入法报告窗口高度为 0，可见软键盘遮挡需手机验收；1 核、1.5 GiB、15 FPS 限制下的结果不代表真机高刷性能。WhatsApp/Telegram 的接收确认与发送播放仍需安装目标应用的手机验证。
 
 ## 12. 许可证与上游署名
 

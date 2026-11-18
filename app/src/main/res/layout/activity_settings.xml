@@ -10,7 +10,10 @@
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fitsSystemWindows="true">
+        android:background="?attr/colorSurface"
+        android:stateListAnimator="@null"
+        app:elevation="0dp"
+        app:liftOnScroll="false">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/settings_toolbar"
@@ -18,25 +21,41 @@
             android:layout_height="?attr/actionBarSize"
             app:navigationIcon="@drawable/ic_back"
             app:navigationContentDescription="@string/main_title"
-            app:title="@string/settings_title" />
+            app:title="@string/settings_title"
+            app:titleTextAppearance="@style/TextAppearance.App.Headline" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:fillViewport="true"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingStart="16dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="32dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="24dp"
+                android:text="@string/main_subtitle"
+                android:textAppearance="@style/TextAppearance.App.Body"
+                android:textColor="?attr/colorOnSurfaceVariant" />
 
             <com.google.android.material.card.MaterialCardView
                 style="@style/Widget.App.Card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -52,18 +71,216 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
+                        android:layout_marginTop="8dp"
                         android:text="@string/settings_language_summary"
-                        android:textAppearance="@style/TextAppearance.App.Caption"
+                        android:textAppearance="@style/TextAppearance.App.Body"
                         android:textColor="?attr/colorOnSurfaceVariant" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/language_button"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        style="@style/Widget.Material3.Button.TonalButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:ellipsize="end"
+                        android:maxLines="2"
+                        android:minHeight="56dp"
+                        android:paddingTop="12dp"
+                        android:paddingBottom="12dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.App.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/settings_theme"
+                        android:textAppearance="@style/TextAppearance.App.Title" />
+
+                    <com.google.android.material.radiobutton.MaterialRadioButton
+                        android:id="@+id/mode_system"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:minHeight="48dp"
-                        android:layout_marginTop="8dp" />
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp"
+                        android:text="@string/mode_system"
+                        android:textAppearance="@style/TextAppearance.App.Body" />
+
+                    <com.google.android.material.radiobutton.MaterialRadioButton
+                        android:id="@+id/mode_light"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp"
+                        android:text="@string/mode_light"
+                        android:textAppearance="@style/TextAppearance.App.Body" />
+
+                    <com.google.android.material.radiobutton.MaterialRadioButton
+                        android:id="@+id/mode_dark"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp"
+                        android:text="@string/mode_dark"
+                        android:textAppearance="@style/TextAppearance.App.Body" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:background="?attr/colorOutlineVariant" />
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/dynamic_switch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="48dp"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp"
+                        android:text="@string/settings_dynamic"
+                        android:textAppearance="@style/TextAppearance.App.Title" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/settings_dynamic_summary"
+                        android:textAppearance="@style/TextAppearance.App.Body"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        android:text="@string/settings_seed"
+                        android:textAppearance="@style/TextAppearance.App.Title" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/settings_seed_summary"
+                        android:textAppearance="@style/TextAppearance.App.Body"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <com.google.android.material.slider.Slider
+                        android:id="@+id/seed_slider"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="8dp"
+                        android:contentDescription="@string/settings_seed"
+                        android:stepSize="1"
+                        android:valueFrom="0"
+                        android:valueTo="5" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.App.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/source_telegram"
+                        android:textAppearance="@style/TextAppearance.App.Title" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/telegram_token_help"
+                        android:textAppearance="@style/TextAppearance.App.Body"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:hint="@string/telegram_token_title"
+                        app:endIconMode="none">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/telegram_token_input"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:importantForAutofill="no"
+                            android:inputType="textPassword|textNoSuggestions"
+                            android:maxLines="1"
+                            android:minHeight="56dp"
+                            android:saveEnabled="false"
+                            android:singleLine="true" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <TextView
+                        android:id="@+id/telegram_bot_status"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:accessibilityLiveRegion="polite"
+                        android:textAppearance="@style/TextAppearance.App.Body"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/telegram_save_button"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:maxLines="2"
+                            android:minWidth="0dp"
+                            android:minHeight="56dp"
+                            android:paddingTop="12dp"
+                            android:paddingBottom="12dp"
+                            android:text="@string/save_and_test"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/telegram_clear_button"
+                            style="@style/Widget.Material3.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:minWidth="64dp"
+                            android:minHeight="56dp"
+                            android:paddingStart="12dp"
+                            android:paddingEnd="12dp"
+                            android:text="@string/clear"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp" />
+                    </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -77,194 +294,51 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <com.google.android.material.materialswitch.MaterialSwitch
-                        android:id="@+id/dynamic_switch"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:text="@string/settings_dynamic" />
-
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/settings_dynamic_summary"
-                        android:textAppearance="@style/TextAppearance.App.Caption"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:text="@string/settings_seed"
-                        android:textAppearance="@style/TextAppearance.App.Title" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/settings_seed_summary"
-                        android:textAppearance="@style/TextAppearance.App.Caption"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
-
-                    <com.google.android.material.slider.Slider
-                        android:id="@+id/seed_slider"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:stepSize="1"
-                        android:valueFrom="0"
-                        android:valueTo="5" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                style="@style/Widget.App.Card"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/settings_theme"
-                        android:textAppearance="@style/TextAppearance.App.Title" />
-
-                    <com.google.android.material.radiobutton.MaterialRadioButton
-                        android:id="@+id/mode_system"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:text="@string/mode_system" />
-
-                    <com.google.android.material.radiobutton.MaterialRadioButton
-                        android:id="@+id/mode_light"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:text="@string/mode_light" />
-
-                    <com.google.android.material.radiobutton.MaterialRadioButton
-                        android:id="@+id/mode_dark"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:text="@string/mode_dark" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                style="@style/Widget.App.Card"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/telegram_token_title"
-                        android:textAppearance="@style/TextAppearance.App.Title" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="@string/telegram_token_help"
-                        android:textAppearance="@style/TextAppearance.App.Caption"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        app:endIconMode="password_toggle"
-                        android:hint="@string/telegram_token_hint">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/telegram_token_input"
-                            android:layout_width="match_parent"
-                            android:layout_height="48dp"
-                            android:inputType="textPassword"
-                            android:maxLines="1" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <TextView
-                        android:id="@+id/telegram_bot_status"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textAppearance="@style/TextAppearance.App.Caption"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/telegram_save_button"
-                            android:layout_width="0dp"
-                            android:layout_height="48dp"
-                            android:layout_weight="1"
-                            android:text="@string/save_and_test" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/telegram_clear_button"
-                            style="@style/Widget.Material3.Button.TextButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="48dp"
-                            android:text="@string/clear" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                style="@style/Widget.App.Card"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
                         android:text="@string/about_title"
                         android:textAppearance="@style/TextAppearance.App.Title" />
 
                     <TextView
                         android:id="@+id/about_author"
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
+                        android:layout_height="wrap_content"
                         android:gravity="center_vertical"
+                        android:minHeight="48dp"
+                        android:paddingTop="12dp"
+                        android:paddingBottom="12dp"
                         android:text="@string/about_author"
                         android:textAppearance="@style/TextAppearance.App.Body" />
 
                     <TextView
                         android:id="@+id/about_repository"
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
+                        android:layout_height="wrap_content"
                         android:autoLink="web"
                         android:gravity="center_vertical"
+                        android:minHeight="48dp"
+                        android:paddingTop="12dp"
+                        android:paddingBottom="12dp"
                         android:text="@string/about_repository"
-                        android:textAppearance="@style/TextAppearance.App.Body" />
+                        android:textAppearance="@style/TextAppearance.App.Body"
+                        android:textColorLink="?attr/colorPrimary" />
 
                     <TextView
                         android:id="@+id/about_version"
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
+                        android:layout_height="wrap_content"
                         android:gravity="center_vertical"
+                        android:minHeight="48dp"
+                        android:paddingTop="12dp"
+                        android:paddingBottom="12dp"
                         android:textAppearance="@style/TextAppearance.App.Body" />
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
+                        android:layout_marginTop="8dp"
                         android:text="@string/about_license"
                         android:textAppearance="@style/TextAppearance.App.Caption"
                         android:textColor="?attr/colorOnSurfaceVariant" />

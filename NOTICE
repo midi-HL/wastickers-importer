@@ -70,8 +70,10 @@ E) libwebp 1.4.0 — BSD-3-Clause
    Upstream tarball: https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.4.0.tar.gz
    Upstream tarball SHA256: 61f873ec69e3be1b99535634340d5bde750b2e4447caa1db9f61be3fd49ab1e5
    Vendored (pruned) source: `app/src/main/cpp/third_party/libwebp/`
-   Vendored tree SHA256: 60f32d5a4ede2b0db96a0da09e6ced94007dd07f4f83808017d54357fff084dd
-   CI verifies this digest with `scripts/verify-dependencies.py`.
+   Vendored normalized tree SHA256: 668133ea1462b4b87d9652f85513408c82a6dfc35ba1d91ac7a1b37e8916e219
+   `scripts/verify-dependencies.py` checks required source files and BSD license
+   text, then prints the normalized tree digest for traceability. It does not
+   download the upstream archive or compare against a fixed expected digest.
    Used for WebPAnimEncoder / libwebpmux via NDK/CMake/JNI. Upstream license text
    is retained in `app/src/main/cpp/third_party/libwebp/COPYING`.
 
