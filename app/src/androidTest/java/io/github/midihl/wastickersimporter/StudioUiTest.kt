@@ -32,6 +32,39 @@ class StudioUiTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
 
     @Test
+    fun emptyLibraryImportTargetDoesNotOverlapCreateStickerFab() {
+        val activity = instrumentation.startActivitySync(
+            Intent(instrumentation.targetContext, MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
+        ) as MainActivity
+        try {
+            onMain {
+                activity.findViewById<View>(R.id.empty_state).visibility = View.VISIBLE
+                activity.window.decorView.requestLayout()
+            }
+            await("首页空状态控件应完成布局") {
+                activity.findViewById<View>(R.id.empty_open_button).width > 0 &&
+                    activity.findViewById<View>(R.id.open_file_fab).width > 0
+            }
+            onMain {
+                val importButton = activity.findViewById<View>(R.id.empty_open_button)
+                val createButton = activity.findViewById<View>(R.id.open_file_fab)
+                val importBounds = android.graphics.Rect()
+                val createBounds = android.graphics.Rect()
+                assertTrue(importButton.getGlobalVisibleRect(importBounds))
+                assertTrue(createButton.getGlobalVisibleRect(createBounds))
+                assertFalse(
+                    "空状态导入按钮与制作贴纸按钮的触控区域不能交叠: $importBounds / $createBounds",
+                    android.graphics.Rect.intersects(importBounds, createBounds)
+                )
+                assertTrue(importButton.height >= (48 * activity.resources.displayMetrics.density).toInt())
+            }
+        } finally {
+            onMain { activity.finish() }
+        }
+    }
+
+    @Test
     fun newDraftKeepsBlankStickerAfterEditorCancelAndBack() = withFixture { fixture ->
         val studio = fixture.launch()
         val work = fixture.workspace(studio)
