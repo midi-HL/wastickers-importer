@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">.wastickers 导入器</string>
+    <string name="app_name">贴纸工坊</string>
     <string name="main_title">我的贴纸包</string>
     <string name="main_subtitle">制作你的贴纸，导入 WhatsApp 与 Telegram</string>
     <string name="open_file">打开 .wastickers</string>
+    <string name="navigate_back">返回</string>
     <string name="empty_title">还没有贴纸包</string>
-    <string name="empty_body">从 @tgtowabot 或 sticker-convert 拿到 .wastickers 后，点下面的按钮打开它。</string>
+    <string name="empty_body">从相册选图制作贴纸，或导入已有的贴纸包。</string>
+    <string name="empty_import">导入贴纸包</string>
     <string name="settings">设置</string>
     <string name="pack_sticker_count">%1$d 张贴纸</string>
     <string name="add_to_whatsapp">添加到 WhatsApp</string>
@@ -25,15 +27,16 @@
     <string name="sticker_grid_label">整包贴纸</string>
     <string name="added_state">已添加</string>
     <string name="settings_title">设置</string>
-    <string name="settings_dynamic">动态取色</string>
-    <string name="settings_dynamic_summary">Android 12 及以上跟随系统壁纸，深色模式同样生效</string>
-    <string name="settings_seed">内置种子色</string>
-    <string name="settings_seed_summary">关闭动态取色或设备不支持时，由所选种子色生成 MD3 配色</string>
+    <string name="settings_dynamic">跟随壁纸取色</string>
+    <string name="settings_dynamic_summary">返回首页后应用当前的系统配色。</string>
+    <string name="settings_dynamic_unavailable">此设备未提供壁纸配色，可以使用下方的内置配色。</string>
+    <string name="settings_seed">内置配色</string>
+    <string name="settings_seed_summary">关闭壁纸取色即可选择，返回首页后生效。</string>
     <string name="settings_theme">深色模式</string>
     <string name="mode_system">跟随系统</string>
     <string name="mode_light">浅色</string>
     <string name="mode_dark">深色</string>
-    <string name="settings_restart_hint">重新打开页面后生效</string>
+    <string name="settings_seed_available">选择一种内置配色，返回首页后生效。</string>
     <string name="error_title">出了点问题</string>
     <string name="error_unknown">发生了未知错误，请换一个文件重试</string>
     <string name="error_no_whatsapp">未检测到 WhatsApp。请先安装 WhatsApp 或 WhatsApp Business，再回到这里重试。</string>

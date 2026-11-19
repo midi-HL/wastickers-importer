@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">.wastickers Importer</string>
+    <string name="app_name">Sticker Studio</string>
     <string name="main_title">My sticker packs</string>
     <string name="main_subtitle">Make your own stickers for WhatsApp and Telegram</string>
     <string name="open_file">Open .wastickers</string>
+    <string name="navigate_back">Back</string>
     <string name="empty_title">No sticker packs yet</string>
-    <string name="empty_body">Get a .wastickers file from @tgtowabot or sticker-convert, then use the button below.</string>
+    <string name="empty_body">Make stickers from your photos or import a pack you already have.</string>
+    <string name="empty_import">Import a pack</string>
     <string name="settings">Settings</string>
     <string name="pack_sticker_count">%1$d stickers</string>
     <string name="add_to_whatsapp">Add to WhatsApp</string>
@@ -25,15 +27,16 @@
     <string name="sticker_grid_label">All stickers</string>
     <string name="added_state">Added</string>
     <string name="settings_title">Settings</string>
-    <string name="settings_dynamic">Dynamic color</string>
-    <string name="settings_dynamic_summary">Follow the system wallpaper on Android 12+, including dark mode</string>
-    <string name="settings_seed">Built-in seed color</string>
-    <string name="settings_seed_summary">Used to build an MD3 palette when dynamic color is off or unavailable</string>
+    <string name="settings_dynamic">Use wallpaper colors</string>
+    <string name="settings_dynamic_summary">Applies the system colors when you return to the library.</string>
+    <string name="settings_dynamic_unavailable">Wallpaper colors are unavailable on this device. Choose a built-in palette below.</string>
+    <string name="settings_seed">Built-in palette</string>
+    <string name="settings_seed_summary">Choose a palette with wallpaper colors off. It applies when you return to the library.</string>
     <string name="settings_theme">Dark mode</string>
     <string name="mode_system">Follow system</string>
     <string name="mode_light">Light</string>
     <string name="mode_dark">Dark</string>
-    <string name="settings_restart_hint">Reopen the screen to apply</string>
+    <string name="settings_seed_available">Choose a built-in palette. It applies when you return to the library.</string>
     <string name="error_title">Something went wrong</string>
     <string name="error_unknown">An unknown error occurred. Please try another file.</string>
     <string name="error_no_whatsapp">WhatsApp was not detected. Install WhatsApp or WhatsApp Business, then try again.</string>

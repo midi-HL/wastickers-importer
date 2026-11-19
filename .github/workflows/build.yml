@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      VERSION_NAME: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '3.1.0' }}
+      TAG_VERSION: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
       VERSION_CODE: ${{ github.run_number }}
       SIGNED: ${{ secrets.KEYSTORE_BASE64 != '' && secrets.KEYSTORE_PASSWORD != '' && secrets.KEY_ALIAS != '' && secrets.KEY_PASSWORD != '' }}
     steps:
@@ -63,10 +63,18 @@ jobs:
       - name: Verify vendored native sources
         run: python3 scripts/verify-dependencies.py
 
+      - name: Resolve APK version
+        run: |
+          version_name="${TAG_VERSION#v}"
+          if [ -z "$TAG_VERSION" ]; then
+            version_name=$(awk -F= '$1 == "versionName" {print $2; exit}' gradle.properties)
+          fi
+          test -n "$version_name"
+          printf 'VERSION_NAME=%s\n' "$version_name" >> "$GITHUB_ENV"
+
       - name: Gradle lint, unit tests, debug and release APKs
         run: |
           chmod +x ./gradlew
-          VERSION_NAME="${VERSION_NAME#v}"
           ./gradlew --no-daemon --stacktrace \
             -PVERSION_NAME="$VERSION_NAME" -PVERSION_CODE="$VERSION_CODE" \
             lint test assembleDebug assembleRelease assembleDebugAndroidTest
@@ -152,7 +160,7 @@ jobs:
       - name: Build side-by-side device validation package
         run: |
           ./gradlew --no-daemon -PPREVIEW_APPLICATION_ID=io.github.midihl.wastickersimporter.studiotestv3 \
-            -PVERSION_NAME=3.1.0 -PVERSION_CODE="$VERSION_CODE" assembleDebug assembleDebugAndroidTest
+            -PVERSION_NAME="$VERSION_NAME" -PVERSION_CODE="$VERSION_CODE" assembleDebug assembleDebugAndroidTest
           mkdir -p artifacts/preview
           cp app/build/outputs/apk/debug/*x86_64*.apk artifacts/preview/
           cp app/build/outputs/apk/androidTest/debug/*.apk artifacts/preview/

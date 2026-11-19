@@ -60,15 +60,23 @@ class SettingsActivity : BaseActivity() {
         }
 
         val dynamicSwitch = findViewById<MaterialSwitch>(R.id.dynamic_switch)
-        dynamicSwitch.isChecked = ThemeSettings.dynamicEnabled(this)
+        val seedSlider = findViewById<Slider>(R.id.seed_slider)
+        val supportsWallpaperColors = ThemeSettings.isDynamicColorSupported()
+        dynamicSwitch.isEnabled = supportsWallpaperColors
+        dynamicSwitch.isChecked = supportsWallpaperColors && ThemeSettings.dynamicEnabled(this)
+        if (!supportsWallpaperColors) {
+            findViewById<TextView>(R.id.dynamic_color_summary).setText(R.string.settings_dynamic_unavailable)
+            findViewById<TextView>(R.id.seed_color_summary).setText(R.string.settings_seed_available)
+        }
+        seedSlider.value = ThemeSettings.seedIndex(this).toFloat()
+        seedSlider.isEnabled = !dynamicSwitch.isChecked
         dynamicSwitch.setOnCheckedChangeListener { _, checked ->
             ThemeSettings.setDynamicEnabled(this, checked)
-            snack(getString(R.string.settings_restart_hint))
+            seedSlider.isEnabled = !checked
         }
-
-        val seedSlider = findViewById<Slider>(R.id.seed_slider)
-        seedSlider.value = ThemeSettings.seedIndex(this).toFloat()
-        seedSlider.addOnChangeListener { _, value, _ -> ThemeSettings.setSeedIndex(this, value.toInt()) }
+        seedSlider.addOnChangeListener { _, value, fromUser ->
+            if (fromUser) ThemeSettings.setSeedIndex(this, value.toInt())
+        }
 
         val modes = listOf(
             AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM,

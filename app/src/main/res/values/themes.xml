@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Fallback seed palette. Android 12+ applies ThemeOverlay.Material3.DynamicColors.DayNight. -->
+    <!-- Base palette for the launch window. Activities apply the user's palette before inflating views. -->
     <style name="Base.AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="dynamicColorThemeOverlay">@style/ThemeOverlay.Material3.DynamicColors.DayNight</item>
         <item name="colorPrimary">@color/seed_primary</item>
         <item name="colorOnPrimary">@color/seed_on_primary</item>
         <item name="colorPrimaryContainer">@color/seed_primary_container</item>
@@ -23,6 +22,20 @@
     </style>
 
     <style name="AppTheme" parent="Base.AppTheme" />
+
+    <style name="ThemeOverlay.App.SeedBase" parent="">
+        <item name="android:colorBackground">?attr/colorSurface</item>
+        <item name="android:textColorPrimary">?attr/colorOnSurface</item>
+        <item name="android:textColorSecondary">?attr/colorOnSurfaceVariant</item>
+        <item name="android:colorAccent">?attr/colorPrimary</item>
+        <item name="colorControlNormal">?attr/colorOnSurfaceVariant</item>
+        <item name="colorControlActivated">?attr/colorPrimary</item>
+        <item name="colorSurfaceContainerLowest">?attr/colorSurface</item>
+        <item name="colorSurfaceContainerHighest">?attr/colorSurfaceContainerHigh</item>
+        <item name="colorSurfaceVariant">?attr/colorSurfaceContainerHigh</item>
+        <item name="colorOutline">?attr/colorOnSurfaceVariant</item>
+        <item name="colorOutlineVariant">?attr/colorSurfaceContainerHigh</item>
+    </style>
 
     <!-- Compact type scale for 720p portrait: readable without the bulky default M3 headline sizes. -->
     <style name="TextAppearance.App.Headline" parent="TextAppearance.Material3.HeadlineSmall">

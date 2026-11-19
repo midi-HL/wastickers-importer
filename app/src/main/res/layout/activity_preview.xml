@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/preview_root" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="?attr/colorSurface">
-    <com.google.android.material.appbar.MaterialToolbar android:id="@+id/preview_toolbar" android:layout_width="match_parent" android:layout_height="56dp" app:navigationIcon="@drawable/ic_back" app:navigationContentDescription="@string/main_title" app:title="@string/preview_title" />
+    <com.google.android.material.appbar.MaterialToolbar android:id="@+id/preview_toolbar" android:layout_width="match_parent" android:layout_height="56dp" app:navigationIcon="@drawable/ic_back" app:navigationContentDescription="@string/navigate_back" app:title="@string/preview_title" />
     <LinearLayout android:id="@+id/preview_workspace" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="vertical">
     <ScrollView android:id="@+id/preview_summary_scroll" android:layout_width="match_parent" android:layout_height="wrap_content" android:fillViewport="false">
     <com.google.android.material.card.MaterialCardView style="@style/Widget.App.Card" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="16dp" android:layout_marginTop="8dp" android:layout_marginBottom="8dp">

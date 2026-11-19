@@ -1,11 +1,12 @@
 package io.github.midihl.wastickersimporter
 
-import android.app.Activity
 import android.content.Context
 import android.content.res.Configuration
+import android.view.ContextThemeWrapper
+import androidx.annotation.StyleRes
 import androidx.appcompat.app.AppCompatDelegate
 import com.google.android.material.color.DynamicColors
-import com.google.android.material.color.DynamicColorsOptions
+import com.google.android.material.R as MaterialR
 
 object ThemeSettings {
     private const val PREFS = "appearance"
@@ -13,9 +14,13 @@ object ThemeSettings {
     private const val KEY_SEED = "seed_color"
     private const val KEY_MODE = "night_mode"
 
-    val SEEDS = intArrayOf(
-        0xFF6750A4.toInt(), 0xFF3F6375.toInt(), 0xFF9C4146.toInt(),
-        0xFF356A3E.toInt(), 0xFF8A5A18.toInt(), 0xFF4C4B8C.toInt()
+    private val lightPalettes = intArrayOf(
+        R.style.SeedOverlay_0_Light, R.style.SeedOverlay_1_Light, R.style.SeedOverlay_2_Light,
+        R.style.SeedOverlay_3_Light, R.style.SeedOverlay_4_Light, R.style.SeedOverlay_5_Light
+    )
+    private val darkPalettes = intArrayOf(
+        R.style.SeedOverlay_0_Dark, R.style.SeedOverlay_1_Dark, R.style.SeedOverlay_2_Dark,
+        R.style.SeedOverlay_3_Dark, R.style.SeedOverlay_4_Dark, R.style.SeedOverlay_5_Dark
     )
 
     fun dynamicEnabled(context: Context): Boolean =
@@ -26,7 +31,7 @@ object ThemeSettings {
     }
 
     fun seedIndex(context: Context): Int =
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt(KEY_SEED, 0).coerceIn(0, SEEDS.size - 1)
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt(KEY_SEED, 0).coerceIn(lightPalettes.indices)
 
     fun setSeedIndex(context: Context, index: Int) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putInt(KEY_SEED, index).apply()
@@ -44,29 +49,31 @@ object ThemeSettings {
         AppCompatDelegate.setDefaultNightMode(mode(context))
     }
 
-    /** Called before any Activity is created; dynamic color follows the system wallpaper. */
-    fun applyToApplication(app: ImporterApplication) {
-        val options = DynamicColorsOptions.Builder()
-            .setPrecondition { _, _ -> dynamicEnabled(app) && isDynamicColorSupported() }
-            .build()
-        DynamicColors.applyToActivitiesIfAvailable(app, options)
-    }
+    fun isDynamicColorSupported(): Boolean = DynamicColors.isDynamicColorAvailable()
 
-    /** Applies a pre-generated full MD3 palette when wallpaper colors are unavailable/disabled. */
-    fun applySeedToActivity(activity: Activity) {
-        if (dynamicEnabled(activity) && isDynamicColorSupported()) return
-        val dark = activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-            Configuration.UI_MODE_NIGHT_YES
-        val style = when (seedIndex(activity)) {
-            0 -> if (dark) R.style.SeedOverlay_0_Dark else R.style.SeedOverlay_0_Light
-            1 -> if (dark) R.style.SeedOverlay_1_Dark else R.style.SeedOverlay_1_Light
-            2 -> if (dark) R.style.SeedOverlay_2_Dark else R.style.SeedOverlay_2_Light
-            3 -> if (dark) R.style.SeedOverlay_3_Dark else R.style.SeedOverlay_3_Light
-            4 -> if (dark) R.style.SeedOverlay_4_Dark else R.style.SeedOverlay_4_Light
-            else -> if (dark) R.style.SeedOverlay_5_Dark else R.style.SeedOverlay_5_Light
+    internal data class Palette(@StyleRes val overlay: Int, val systemColors: List<Int> = emptyList())
+
+    private val systemColorRoles = intArrayOf(
+        MaterialR.attr.colorPrimary, MaterialR.attr.colorPrimaryContainer,
+        MaterialR.attr.colorOnPrimaryContainer, MaterialR.attr.colorSecondaryContainer,
+        MaterialR.attr.colorSurface, MaterialR.attr.colorOnSurface, MaterialR.attr.colorSurfaceContainer
+    ).apply { sort() }
+
+    internal fun palette(context: Context): Palette {
+        val nightMode = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        val dark = nightMode == Configuration.UI_MODE_NIGHT_YES
+        if (!dynamicEnabled(context) || !isDynamicColorSupported()) {
+            val palettes = if (dark) darkPalettes else lightPalettes
+            return Palette(palettes[seedIndex(context)])
         }
-        activity.theme.applyStyle(style, true)
+        val overlay = if (dark) MaterialR.style.ThemeOverlay_Material3_DynamicColors_Dark
+        else MaterialR.style.ThemeOverlay_Material3_DynamicColors_Light
+        // A wallpaper update can change the resolved colors without changing the overlay ID.
+        val colors = ContextThemeWrapper(context, overlay).obtainStyledAttributes(systemColorRoles)
+        return try {
+            Palette(overlay, systemColorRoles.indices.map { colors.getColor(it, 0) })
+        } finally {
+            colors.recycle()
+        }
     }
-
-    private fun isDynamicColorSupported(): Boolean = DynamicColors.isDynamicColorAvailable()
 }

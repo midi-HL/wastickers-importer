@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="SeedOverlay.0.Light" parent="">
+    <style name="SeedOverlay.0.Light" parent="@style/ThemeOverlay.App.SeedBase">
         <item name="colorPrimary">@color/seed0_primary</item>
         <item name="colorOnPrimary">@color/seed0_on_primary</item>
         <item name="colorPrimaryContainer">@color/seed0_primary_container</item>
@@ -20,7 +20,7 @@
         <item name="colorOnSurface">@color/seed0_on_surface</item>
         <item name="colorOnSurfaceVariant">@color/seed0_on_surface_variant</item>
     </style>
-    <style name="SeedOverlay.1.Light" parent="">
+    <style name="SeedOverlay.1.Light" parent="@style/ThemeOverlay.App.SeedBase">
         <item name="colorPrimary">@color/seed1_primary</item>
         <item name="colorOnPrimary">@color/seed1_on_primary</item>
         <item name="colorPrimaryContainer">@color/seed1_primary_container</item>
@@ -40,7 +40,7 @@
         <item name="colorOnSurface">@color/seed1_on_surface</item>
         <item name="colorOnSurfaceVariant">@color/seed1_on_surface_variant</item>
     </style>
-    <style name="SeedOverlay.2.Light" parent="">
+    <style name="SeedOverlay.2.Light" parent="@style/ThemeOverlay.App.SeedBase">
         <item name="colorPrimary">@color/seed2_primary</item>
         <item name="colorOnPrimary">@color/seed2_on_primary</item>
         <item name="colorPrimaryContainer">@color/seed2_primary_container</item>
@@ -60,7 +60,7 @@
         <item name="colorOnSurface">@color/seed2_on_surface</item>
         <item name="colorOnSurfaceVariant">@color/seed2_on_surface_variant</item>
     </style>
-    <style name="SeedOverlay.3.Light" parent="">
+    <style name="SeedOverlay.3.Light" parent="@style/ThemeOverlay.App.SeedBase">
         <item name="colorPrimary">@color/seed3_primary</item>
         <item name="colorOnPrimary">@color/seed3_on_primary</item>
         <item name="colorPrimaryContainer">@color/seed3_primary_container</item>
@@ -80,7 +80,7 @@
         <item name="colorOnSurface">@color/seed3_on_surface</item>
         <item name="colorOnSurfaceVariant">@color/seed3_on_surface_variant</item>
     </style>
-    <style name="SeedOverlay.4.Light" parent="">
+    <style name="SeedOverlay.4.Light" parent="@style/ThemeOverlay.App.SeedBase">
         <item name="colorPrimary">@color/seed4_primary</item>
         <item name="colorOnPrimary">@color/seed4_on_primary</item>
         <item name="colorPrimaryContainer">@color/seed4_primary_container</item>
@@ -100,7 +100,7 @@
         <item name="colorOnSurface">@color/seed4_on_surface</item>
         <item name="colorOnSurfaceVariant">@color/seed4_on_surface_variant</item>
     </style>
-    <style name="SeedOverlay.5.Light" parent="">
+    <style name="SeedOverlay.5.Light" parent="@style/ThemeOverlay.App.SeedBase">
         <item name="colorPrimary">@color/seed5_primary</item>
         <item name="colorOnPrimary">@color/seed5_on_primary</item>
         <item name="colorPrimaryContainer">@color/seed5_primary_container</item>

@@ -40,24 +40,32 @@ class StudioUiTest {
         try {
             onMain {
                 activity.findViewById<View>(R.id.empty_state).visibility = View.VISIBLE
+                activity.findViewById<View>(R.id.open_file_fab).visibility = View.GONE
                 activity.window.decorView.requestLayout()
             }
             await("首页空状态控件应完成布局") {
-                activity.findViewById<View>(R.id.empty_open_button).width > 0 &&
-                    activity.findViewById<View>(R.id.open_file_fab).width > 0
+                var ready = false
+                onMain {
+                    ready = activity.findViewById<View>(R.id.empty_open_button).width > 0 &&
+                        activity.findViewById<View>(R.id.empty_create_button).width > 0
+                }
+                ready
             }
             onMain {
                 val importButton = activity.findViewById<View>(R.id.empty_open_button)
-                val createButton = activity.findViewById<View>(R.id.open_file_fab)
+                val createButton = activity.findViewById<View>(R.id.empty_create_button)
                 val importBounds = android.graphics.Rect()
                 val createBounds = android.graphics.Rect()
+                assertEquals(View.GONE, activity.findViewById<View>(R.id.open_file_fab).visibility)
                 assertTrue(importButton.getGlobalVisibleRect(importBounds))
                 assertTrue(createButton.getGlobalVisibleRect(createBounds))
                 assertFalse(
-                    "空状态导入按钮与制作贴纸按钮的触控区域不能交叠: $importBounds / $createBounds",
+                    "空状态两个入口的触控区域不能交叠: $importBounds / $createBounds",
                     android.graphics.Rect.intersects(importBounds, createBounds)
                 )
-                assertTrue(importButton.height >= (48 * activity.resources.displayMetrics.density).toInt())
+                val minimum = (48 * activity.resources.displayMetrics.density).toInt()
+                assertTrue(importButton.height >= minimum && createButton.height >= minimum)
+                assertTrue(importButton.width >= minimum && createButton.width >= minimum)
             }
         } finally {
             onMain { activity.finish() }

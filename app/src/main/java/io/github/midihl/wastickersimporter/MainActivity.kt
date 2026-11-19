@@ -1,6 +1,7 @@
 package io.github.midihl.wastickersimporter
 
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,17 +11,21 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.android.material.progressindicator.LinearProgressIndicator
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
-import io.github.midihl.wastickersimporter.UiMotion.childrenSequence
+import com.google.android.material.R as MaterialR
 import io.github.midihl.wastickersimporter.model.PackManifest
 import io.github.midihl.wastickersimporter.telegram.TelegramApiException
 import io.github.midihl.wastickersimporter.telegram.TelegramImportCoordinator
@@ -39,7 +44,11 @@ class MainActivity : BaseActivity() {
 
     private lateinit var recycler: RecyclerView
     private lateinit var emptyState: View
+    private lateinit var createFab: ExtendedFloatingActionButton
     private lateinit var progress: CircularProgressIndicator
+    private var archiveImportsInFlight = 0
+    private var resultSnackbar: Snackbar? = null
+    private var openErrorDialogs = 0
     private lateinit var tgProgress: LinearProgressIndicator
     private lateinit var tgProgressText: TextView
     private lateinit var tgCancel: MaterialButton
@@ -94,18 +103,28 @@ class MainActivity : BaseActivity() {
         )
         recycler.layoutManager = LinearLayoutManager(this)
         recycler.adapter = adapter
-        findViewById<ExtendedFloatingActionButton>(R.id.open_file_fab).setOnClickListener {
-            startActivity(Intent(this, StudioActivity::class.java))
-        }
+        val createSticker = View.OnClickListener { startActivity(Intent(this, StudioActivity::class.java)) }
+        createFab = findViewById(R.id.open_file_fab)
+        createFab.setOnClickListener(createSticker)
+        findViewById<MaterialButton>(R.id.empty_create_button).setOnClickListener(createSticker)
         findViewById<MaterialButton>(R.id.main_open_archive).setOnClickListener {
             openFile.launch(arrayOf("*/*"))
         }
+        val nav = findViewById<BottomNavigationView>(R.id.main_navigation)
         findViewById<MaterialButton>(R.id.empty_open_button).setOnClickListener {
-            findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.main_navigation).selectedItemId = R.id.nav_import
+            nav.selectedItemId = R.id.nav_import
         }
-        val nav = findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.main_navigation)
         nav.menu.add(Menu.NONE, R.id.nav_library, 0, R.string.nav_library).setIcon(R.drawable.ic_empty_sticker)
         nav.menu.add(Menu.NONE, R.id.nav_import, 1, R.string.nav_import).setIcon(R.drawable.ic_open_file)
+        nav.itemActiveIndicatorColor = ColorStateList.valueOf(MaterialColors.getColor(nav, MaterialR.attr.colorPrimaryContainer))
+        val navStates = arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf())
+        val inactiveColor = MaterialColors.getColor(nav, MaterialR.attr.colorOnSurfaceVariant)
+        nav.itemIconTintList = ColorStateList(navStates, intArrayOf(
+            MaterialColors.getColor(nav, MaterialR.attr.colorOnPrimaryContainer), inactiveColor
+        ))
+        nav.itemTextColor = ColorStateList(navStates, intArrayOf(
+            MaterialColors.getColor(nav, MaterialR.attr.colorPrimary), inactiveColor
+        ))
         nav.setOnItemSelectedListener { selectPage(it.itemId); true }
         nav.selectedItemId = savedInstanceState?.getInt("page", R.id.nav_library) ?: R.id.nav_library
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_root)) { view, insets ->
@@ -124,7 +143,7 @@ class MainActivity : BaseActivity() {
             File(cacheDir, "telegram").deleteRecursively()
             showResult(getString(R.string.telegram_cancelled))
         }
-        handleIncomingIntent(intent)
+        if (savedInstanceState == null) handleIncomingIntent(intent)
     }
 
     private fun selectPage(id: Int) {
@@ -151,7 +170,19 @@ class MainActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
-        reload()
+        if (!refreshHomePalette()) reload()
+    }
+
+    private fun refreshHomePalette(): Boolean {
+        // Keep the current instance until imports and their result feedback are finished.
+        if (archiveImportsInFlight > 0 || telegramJob?.isActive == true || pendingExport != null ||
+            resultSnackbar != null || openErrorDialogs > 0
+        ) return false
+        return refreshPaletteIfNeeded()
+    }
+
+    private fun refreshAfterFeedback() {
+        if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) refreshHomePalette()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -205,11 +236,16 @@ class MainActivity : BaseActivity() {
     private fun importUri(uri: Uri, title: String?) {
         progress.visibility = View.VISIBLE
         val suggested = title ?: displayName(uri)
+        archiveImportsInFlight++
         CoroutineScope(Dispatchers.Main).launch {
-            val result = withContext(Dispatchers.IO) {
-                runCatching { PackRepository.importFromUri(applicationContext, uri, suggested) }
+            val result = try {
+                withContext(Dispatchers.IO) {
+                    runCatching { PackRepository.importFromUri(applicationContext, uri, suggested) }
+                }
+            } finally {
+                archiveImportsInFlight--
+                progress.visibility = if (archiveImportsInFlight > 0) View.VISIBLE else View.GONE
             }
-            progress.visibility = View.GONE
             result.fold(
                 onSuccess = { imported ->
                     findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.main_navigation).selectedItemId = R.id.nav_library
@@ -304,6 +340,7 @@ class MainActivity : BaseActivity() {
         findViewById<TextView>(R.id.library_summary).text = getString(R.string.library_summary, packs.size, packs.sumOf { it.stickerCount })
         emptyState.visibility = if (packs.isEmpty()) View.VISIBLE else View.GONE
         recycler.visibility = if (packs.isEmpty()) View.GONE else View.VISIBLE
+        createFab.visibility = if (packs.isEmpty()) View.GONE else View.VISIBLE
     }
 
     private fun openPreview(identifier: String) {
@@ -346,11 +383,31 @@ class MainActivity : BaseActivity() {
             }.show()
     }
 
-    private fun showResult(message: String) = UiMotion.snackbar(findViewById(R.id.main_root), message).show()
+    private fun showResult(message: String) {
+        val snackbar = UiMotion.snackbar(findViewById(R.id.main_root), message)
+        resultSnackbar = snackbar
+        snackbar.addCallback(object : Snackbar.Callback() {
+            override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
+                if (resultSnackbar === snackbar) {
+                    resultSnackbar = null
+                    refreshAfterFeedback()
+                }
+            }
+        })
+        snackbar.show()
+    }
 
-    private fun showError(message: String) = MaterialAlertDialogBuilder(this)
-        .setTitle(R.string.error_title).setMessage(message)
-        .setPositiveButton(android.R.string.ok, null).show()
+    private fun showError(message: String) {
+        openErrorDialogs++
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.error_title).setMessage(message)
+            .setPositiveButton(android.R.string.ok, null).create()
+        dialog.setOnDismissListener {
+            openErrorDialogs--
+            refreshAfterFeedback()
+        }
+        dialog.show()
+    }
 
     private inner class PackAdapter(
         private val onAdd: (PackManifest) -> Unit,

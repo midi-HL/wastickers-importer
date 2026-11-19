@@ -98,6 +98,7 @@ class StickerEditorActivity : BaseActivity() {
         }
         val toolbar = MaterialToolbar(this).apply {
             setTitle(R.string.editor_title); setNavigationIcon(R.drawable.ic_back)
+            setNavigationContentDescription(R.string.navigate_back)
             setTitleTextAppearance(this@StickerEditorActivity, com.google.android.material.R.style.TextAppearance_Material3_TitleLarge)
             setNavigationOnClickListener { leave() }
         }

@@ -102,6 +102,7 @@ class StudioActivity : BaseActivity() {
         }
         val toolbar = MaterialToolbar(this).apply {
             setTitle(R.string.studio_title); setNavigationIcon(R.drawable.ic_back)
+            setNavigationContentDescription(R.string.navigate_back)
             setNavigationOnClickListener { leave() }
         }
         root.addView(toolbar)
