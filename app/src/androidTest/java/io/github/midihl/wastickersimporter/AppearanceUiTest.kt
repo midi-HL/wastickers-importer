@@ -114,9 +114,11 @@ class AppearanceUiTest {
                 assertEquals(ContextCompat.getColor(main, R.color.seed4_primary), primary(main))
                 assertEquals(if (night == AppCompatDelegate.MODE_NIGHT_YES) Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO,
                     main.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK)
-                for ((locale, expected) in listOf(Locale.SIMPLIFIED_CHINESE to "贴纸工坊", Locale.ENGLISH to "Sticker Studio")) {
+                assertEquals("Sticker Studio", main.getString(R.string.app_name))
+                for (locale in listOf(Locale.SIMPLIFIED_CHINESE, Locale.ENGLISH, Locale.FRENCH, Locale.JAPANESE)) {
                     val config = Configuration(main.resources.configuration).apply { setLocale(locale) }
-                    assertEquals(expected, main.createConfigurationContext(config).getString(R.string.app_name))
+                    val localized = main.createConfigurationContext(config)
+                    assertEquals("Sticker Studio", localized.getString(R.string.app_name))
                 }
                 main.finish()
             }
@@ -137,11 +139,11 @@ class AppearanceUiTest {
             }
             val mono = render(R.drawable.ic_launcher_monochrome, 216)
             try {
-                assertEquals(0, Color.alpha(mono.getPixel(86, 92)))
-                assertEquals(0, Color.alpha(mono.getPixel(120, 92)))
-                assertEquals(0, Color.alpha(mono.getPixel(103, 118)))
-                assertTrue(Color.alpha(mono.getPixel(103, 78)) > 240)
-                assertEquals(Color.CYAN, mono.getPixel(103, 78))
+                assertEquals(0, Color.alpha(mono.getPixel(88, 92)))
+                assertEquals(0, Color.alpha(mono.getPixel(128, 92)))
+                assertEquals(0, Color.alpha(mono.getPixel(108, 129)))
+                assertTrue(Color.alpha(mono.getPixel(108, 78)) > 240)
+                assertEquals(Color.CYAN, mono.getPixel(108, 78))
                 val pixels = IntArray(216 * 216)
                 mono.getPixels(pixels, 0, 216, 0, 0, 216, 216)
                 for (y in 0 until 216) for (x in 0 until 216) {
@@ -165,6 +167,68 @@ class AppearanceUiTest {
             }
             val icon = ContextCompat.getDrawable(main, R.mipmap.ic_launcher)
             if (Build.VERSION.SDK_INT >= 26) assertTrue(icon is AdaptiveIconDrawable)
+        }
+    }
+
+    @Test
+    fun launcherLayersStayBalancedAndUnclippedAcrossRepresentativeMasks() = withAppearance { fixture ->
+        fixture.setAppearance(dynamic = false, seed = 0, night = AppCompatDelegate.MODE_NIGHT_NO)
+        val main = fixture.main()
+        onMain {
+            val side = 216
+            val masks = linkedMapOf<String, android.graphics.Path>()
+            masks["square"] = android.graphics.Path().apply { addRect(36f, 36f, 180f, 180f, android.graphics.Path.Direction.CW) }
+            masks["rectangle"] = android.graphics.Path().apply { addRoundRect(36f, 44.64f, 180f, 171.36f, 16f, 16f, android.graphics.Path.Direction.CW) }
+            masks["rounded-square"] = android.graphics.Path().apply { addRoundRect(36f, 36f, 180f, 180f, 33f, 33f, android.graphics.Path.Direction.CW) }
+            masks["squircle"] = android.graphics.Path().apply {
+                for (step in 0..360) {
+                    val angle = step * Math.PI / 180
+                    val c = kotlin.math.cos(angle)
+                    val s = kotlin.math.sin(angle)
+                    val x = (108 + 72 * kotlin.math.sign(c) * kotlin.math.sqrt(kotlin.math.abs(c))).toFloat()
+                    val y = (108 + 72 * kotlin.math.sign(s) * kotlin.math.sqrt(kotlin.math.abs(s))).toFloat()
+                    if (step == 0) moveTo(x, y) else lineTo(x, y)
+                }
+                close()
+            }
+            masks["pebble"] = android.graphics.Path().apply {
+                moveTo(108f, 36f)
+                cubicTo(152.64f, 36f, 180f, 61.92f, 180f, 103.68f)
+                cubicTo(180f, 148.32f, 152.64f, 180f, 108f, 180f)
+                cubicTo(64.8f, 180f, 36f, 152.64f, 36f, 109.44f)
+                cubicTo(36f, 67.68f, 63.36f, 36f, 108f, 36f)
+                close()
+            }
+            masks["circle-compatibility"] = android.graphics.Path().apply { addCircle(108f, 108f, 72f, android.graphics.Path.Direction.CW) }
+            for (id in listOf(R.drawable.ic_launcher_foreground, R.drawable.ic_launcher_monochrome)) {
+                val drawable = requireNotNull(AppCompatResources.getDrawable(main, id)).mutate()
+                drawable.setBounds(0, 0, side, side)
+                val original = Bitmap.createBitmap(side, side, Bitmap.Config.ARGB_8888)
+                try {
+                    drawable.draw(Canvas(original))
+                    var weight = 0.0
+                    var totalX = 0.0
+                    var totalY = 0.0
+                    for (y in 0 until side) for (x in 0 until side) {
+                        val a = Color.alpha(original.getPixel(x, y)).toDouble()
+                        weight += a
+                        totalX += (x + .5) / 2 * a
+                        totalY += (y + .5) / 2 * a
+                    }
+                    assertTrue(weight > 0)
+                    assertEquals("Horizontal optical mass", 54.0, totalX / weight, .35)
+                    assertEquals("Vertical optical mass", 54.0, totalY / weight, .8)
+                    for ((name, path) in masks) {
+                        val clipped = Bitmap.createBitmap(side, side, Bitmap.Config.ARGB_8888)
+                        try {
+                            val canvas = Canvas(clipped)
+                            canvas.clipPath(path)
+                            drawable.draw(canvas)
+                            assertTrue("$name must preserve all foreground pixels", original.sameAs(clipped))
+                        } finally { clipped.recycle() }
+                    }
+                } finally { original.recycle() }
+            }
         }
     }
 

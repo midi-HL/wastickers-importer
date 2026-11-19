@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Sticker Studio</string>
     <string name="main_title">My sticker packs</string>
     <string name="main_subtitle">Make your own stickers for WhatsApp and Telegram</string>
     <string name="open_file">Open .wastickers</string>
