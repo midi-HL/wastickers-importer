@@ -15,3 +15,4 @@ app/build/
 artifacts/
 promo_*/
 skills-zip/
+__pycache__/

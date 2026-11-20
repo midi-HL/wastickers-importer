@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="update_source">Current version %1$s · Updates from GitHub Releases</string>
+    <string name="update_checking">Checking the latest stable GitHub release…</string>
+    <string name="update_no_release">No stable release has been published yet. Try again later.</string>
+    <string name="update_available_status">Version %1$s is available</string>
+    <string name="update_current">No update available · Installed %1$s / Release %2$s</string>
+    <string name="update_failed">Could not check for updates. Check your connection and try again later.</string>
+    <string name="update_available_title">Update available</string>
+    <string name="update_available_body">Installed: %1$s\nLatest: %2$s\n\nYour browser will download the APK. Open it and follow the system prompts to update your existing installation.</string>
+    <string name="update_asset">APK for this device: %1$s</string>
+    <string name="update_later">Later</string>
+    <string name="update_release_page">Release details</string>
+    <string name="update_download">Download update</string>
+    <string name="update_no_browser">No browser is available to open this link.</string>
+</resources>

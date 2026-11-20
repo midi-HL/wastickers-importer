@@ -62,10 +62,12 @@
     <string name="hint_webp">有图片不是 WebP：请用 sticker-convert 重新导出为 WebP 贴纸包。</string>
     <string name="content_provider_label">贴纸包内容</string>
     <string name="about_title">关于</string>
-    <string name="about_author">作者 / 版权：midi-HL</string>
-    <string name="about_repository">开源仓库：https://github.com/midi-HL/wastickers-importer</string>
+    <string name="about_author">作者：github.com/midi-HL</string>
+    <string name="about_repository">开源仓库：midi-HL/wastickers-importer</string>
+    <string name="about_group">交流群：t.me/sticker_studio_android</string>
+    <string name="about_link_unavailable">未找到可打开此链接的浏览器。</string>
     <string name="about_version">版本：%1$s</string>
-    <string name="about_license">许可：GPL-3.0-only；作者 midi-HL，仓库 https://github.com/midi-HL/wastickers-importer。第三方组件仍适用各自原许可，详见 LICENSE 与 NOTICE。</string>
+    <string name="about_license">许可：GPL-3.0-only。© midi-HL。第三方组件保留各自的许可证，详见 LICENSE 与 NOTICE。</string>
     <string name="cancel">取消</string>
     <string name="open_settings">打开设置</string>
     <string name="source_telegram">Telegram</string>
@@ -101,6 +103,10 @@
     <string name="telegram_bot_not_verified">尚未验证 Token</string>
     <string name="save_and_test">保存并测试连接</string>
     <string name="clear">清除</string>
+    <string name="settings_update">自动更新</string>
+    <string name="settings_update_summary">从 GitHub Releases 检查 Sticker Studio 的稳定版本。</string>
+    <string name="settings_update_automatic">启动时检查更新</string>
+    <string name="settings_update_check">检查更新</string>
     <string name="settings_language">语言 / Language</string>
     <string name="settings_language_summary">立即切换界面语言，并记住你的选择。</string>
     <string name="language_system">跟随系统 / System default</string>

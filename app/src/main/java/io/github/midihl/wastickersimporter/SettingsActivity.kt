@@ -1,5 +1,8 @@
 package io.github.midihl.wastickersimporter
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatDelegate
@@ -15,6 +18,7 @@ import com.google.android.material.textfield.TextInputEditText
 import io.github.midihl.wastickersimporter.telegram.TelegramApiException
 import io.github.midihl.wastickersimporter.telegram.TelegramBotClient
 import io.github.midihl.wastickersimporter.telegram.TelegramTokenStore
+import io.github.midihl.wastickersimporter.update.UpdateController
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -31,6 +35,10 @@ class SettingsActivity : BaseActivity() {
         val toolbar = findViewById<MaterialToolbar>(R.id.settings_toolbar)
         setSupportActionBar(toolbar)
         toolbar.setNavigationOnClickListener { finish() }
+        UpdateController(this).bindSettings()
+        bindAboutLink(R.id.about_author, "https://github.com/midi-HL")
+        bindAboutLink(R.id.about_repository, "https://github.com/midi-HL/wastickers-importer")
+        bindAboutLink(R.id.about_group, "https://t.me/sticker_studio_android")
 
         val languageButton = findViewById<MaterialButton>(R.id.language_button)
         val languageLabels = arrayOf(
@@ -150,4 +158,16 @@ class SettingsActivity : BaseActivity() {
 
     private fun snack(message: String) =
         Snackbar.make(findViewById(R.id.settings_root), message, Snackbar.LENGTH_LONG).show()
+
+    private fun bindAboutLink(id: Int, url: String) {
+        findViewById<TextView>(id).setOnClickListener {
+            try {
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addCategory(Intent.CATEGORY_BROWSABLE))
+            } catch (_: ActivityNotFoundException) {
+                snack(getString(R.string.about_link_unavailable))
+            } catch (_: SecurityException) {
+                snack(getString(R.string.about_link_unavailable))
+            }
+        }
+    }
 }

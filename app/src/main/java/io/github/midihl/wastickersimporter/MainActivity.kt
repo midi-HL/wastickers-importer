@@ -41,6 +41,7 @@ import java.io.File
 
 class MainActivity : BaseActivity() {
     companion object { const val EXTRA_TELEGRAM_SHOR_NAME = "telegram_short_name" }
+    private val updates by lazy { io.github.midihl.wastickersimporter.update.UpdateController(this) }
 
     private lateinit var recycler: RecyclerView
     private lateinit var emptyState: View
@@ -170,7 +171,12 @@ class MainActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (!refreshHomePalette()) reload()
+        if (!refreshHomePalette()) {
+            reload()
+            recycler.post {
+                if (archiveImportsInFlight == 0 && telegramJob?.isActive != true) updates.checkAutomatically()
+            }
+        }
     }
 
     private fun refreshHomePalette(): Boolean {
