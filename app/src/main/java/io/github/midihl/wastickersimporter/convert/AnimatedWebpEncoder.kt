@@ -59,12 +59,14 @@ object AnimatedWebpEncoder {
     fun encodeWithinLimit(
         frames: List<Frame>,
         frameRates: IntArray = intArrayOf(30, 20, 15, 10),
-        qualities: IntArray = intArrayOf(90, 80, 70, 60, 50, 40)
+        qualities: IntArray = intArrayOf(90, 80, 70, 60, 50, 40),
+        cancelled: () -> Boolean = { false }
     ): ByteArray? {
         var last: ByteArray? = null
         for (fps in frameRates) {
             val sampled = sampleFrames(frames, fps)
             for (quality in qualities) {
+                if (cancelled()) throw kotlinx.coroutines.CancellationException("cancelled")
                 val bytes = encode(sampled, quality)
                 last = bytes
                 if (bytes.size <= MAX_BYTES) return bytes

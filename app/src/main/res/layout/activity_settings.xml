@@ -237,6 +237,22 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <com.google.android.material.card.MaterialCardView style="@style/Widget.App.Card"
+                android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="16dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:text="@string/settings_import_threads" android:textAppearance="@style/TextAppearance.App.Title" />
+                    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp"
+                        android:text="@string/settings_import_threads_help" android:textAppearance="@style/TextAppearance.App.Body" android:textColor="?attr/colorOnSurfaceVariant" />
+                    <TextView android:id="@+id/import_threads_value" android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp" android:textAppearance="@style/TextAppearance.App.Body" />
+                    <com.google.android.material.slider.Slider android:id="@+id/import_threads_slider"
+                        android:layout_width="match_parent" android:layout_height="48dp" android:saveEnabled="false"
+                        android:contentDescription="@string/settings_import_threads"
+                        android:valueFrom="1" android:valueTo="6" android:stepSize="1" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <com.google.android.material.card.MaterialCardView
                 style="@style/Widget.App.Card"
                 android:layout_width="match_parent"

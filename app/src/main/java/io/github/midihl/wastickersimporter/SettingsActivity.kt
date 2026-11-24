@@ -106,6 +106,16 @@ class SettingsActivity : BaseActivity() {
             }
         }
 
+        val imports = (application as ImporterApplication).telegramImports
+        val threadsSlider = findViewById<Slider>(R.id.import_threads_slider)
+        val threadsValue = findViewById<TextView>(R.id.import_threads_value)
+        threadsSlider.value = imports.workers.threadCount.toFloat()
+        threadsValue.text = getString(R.string.settings_import_threads_value, imports.workers.threadCount)
+        threadsSlider.addOnChangeListener { _, value, fromUser ->
+            threadsValue.text = getString(R.string.settings_import_threads_value, value.toInt())
+            if (fromUser) imports.setThreads(value.toInt())
+        }
+
         val tokenInput = findViewById<TextInputEditText>(R.id.telegram_token_input)
         val status = findViewById<TextView>(R.id.telegram_bot_status)
         tokenInput.setText(TelegramTokenStore.token(this))

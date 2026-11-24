@@ -34,7 +34,11 @@ import io.github.midihl.wastickersimporter.telegram.TelegramTokenStore
 import io.github.midihl.wastickersimporter.telegram.WastickersExporter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import io.github.midihl.wastickersimporter.telegram.ImportTask
+import io.github.midihl.wastickersimporter.telegram.ImportTaskState
+import io.github.midihl.wastickersimporter.telegram.ImportStage
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -50,16 +54,13 @@ class MainActivity : BaseActivity() {
     private var archiveImportsInFlight = 0
     private var resultSnackbar: Snackbar? = null
     private var openErrorDialogs = 0
-    private lateinit var tgProgress: LinearProgressIndicator
-    private lateinit var tgProgressText: TextView
-    private lateinit var tgCancel: MaterialButton
     private lateinit var tgFetch: MaterialButton
     private lateinit var tgInput: TextInputEditText
     private lateinit var adapter: PackAdapter
 
-    @Volatile private var cancelled = false
-    private var telegramJob: Job? = null
-    private val importLock = Any()
+    private val telegramImports get() = (application as ImporterApplication).telegramImports
+    private val taskAdapter = TelegramTaskAdapter()
+    private var completedTaskIds = emptySet<String>()
 
     private val openFile = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         if (uri != null) {
@@ -90,9 +91,6 @@ class MainActivity : BaseActivity() {
         recycler = findViewById(R.id.pack_recycler)
         emptyState = findViewById(R.id.empty_state)
         progress = findViewById(R.id.progress)
-        tgProgress = findViewById(R.id.telegram_progress)
-        tgProgressText = findViewById(R.id.telegram_progress_text)
-        tgCancel = findViewById(R.id.telegram_cancel_button)
         tgFetch = findViewById(R.id.telegram_fetch_button)
         tgInput = findViewById(R.id.telegram_link_input)
         adapter = PackAdapter(
@@ -133,16 +131,24 @@ class MainActivity : BaseActivity() {
             view.setPadding(bars.left, bars.top, bars.right, bars.bottom); androidx.core.view.WindowInsetsCompat.CONSUMED
         }
         recycler.itemAnimator = null
-        tgFetch.setOnClickListener {
-            if (telegramJob?.isActive == true) return@setOnClickListener
-            startTelegramFetch(tgInput.text?.toString().orEmpty())
+        tgFetch.setOnClickListener { startTelegramFetch(tgInput.text?.toString().orEmpty()) }
+        findViewById<RecyclerView>(R.id.telegram_tasks).apply {
+            layoutManager = LinearLayoutManager(this@MainActivity)
+            adapter = taskAdapter
+            itemAnimator = null
         }
-        tgCancel.setOnClickListener {
-            cancelled = true
-            telegramJob?.cancel()
-            setTelegramBusy(false)
-            File(cacheDir, "telegram").deleteRecursively()
-            showResult(getString(R.string.telegram_cancelled))
+        findViewById<MaterialButton>(R.id.telegram_clear_finished).setOnClickListener { telegramImports.queue.clearFinished() }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                telegramImports.queue.tasks.collect { tasks ->
+                    taskAdapter.submit(tasks)
+                    val succeeded = tasks.filter { it.state == ImportTaskState.SUCCEEDED }.map { it.id }.toSet()
+                    if ((succeeded - completedTaskIds).isNotEmpty()) { ImageLoaders.clear(); reload() }
+                    completedTaskIds = succeeded
+                    updateTaskSummary()
+                    findViewById<View>(R.id.telegram_clear_finished).visibility = if (tasks.any { !it.active }) View.VISIBLE else View.GONE
+                }
+            }
         }
         if (savedInstanceState == null) handleIncomingIntent(intent)
     }
@@ -173,15 +179,16 @@ class MainActivity : BaseActivity() {
         super.onResume()
         if (!refreshHomePalette()) {
             reload()
+            updateTaskSummary()
             recycler.post {
-                if (archiveImportsInFlight == 0 && telegramJob?.isActive != true) updates.checkAutomatically()
+                if (archiveImportsInFlight == 0 && !telegramImports.queue.hasActiveTasks) updates.checkAutomatically()
             }
         }
     }
 
     private fun refreshHomePalette(): Boolean {
         // Keep the current instance until imports and their result feedback are finished.
-        if (archiveImportsInFlight > 0 || telegramJob?.isActive == true || pendingExport != null ||
+        if (archiveImportsInFlight > 0 || telegramImports.queue.hasActiveTasks || pendingExport != null ||
             resultSnackbar != null || openErrorDialogs > 0
         ) return false
         return refreshPaletteIfNeeded()
@@ -265,10 +272,10 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    private fun startTelegramFetch(rawLink: String) {
+    private fun startTelegramFetch(rawLink: String, retryId: String? = null) {
         val shortName = try {
             TelegramLinkParser.parse(rawLink)
-        } catch (e: TelegramLinkParser.ParseError) {
+        } catch (_: IllegalArgumentException) {
             showError(getString(R.string.telegram_invalid_link)); return
         }
         val token = TelegramTokenStore.token(this)
@@ -283,36 +290,14 @@ class MainActivity : BaseActivity() {
             return
         }
         findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.main_navigation).selectedItemId = R.id.nav_import
-        tgInput.setText(shortName)
-        cancelled = false
-        setTelegramBusy(true)
-        val context = applicationContext
-        telegramJob = CoroutineScope(Dispatchers.Main).launch {
-            val result = withContext(Dispatchers.IO) {
-                synchronized(importLock) {
-                    runCatching {
-                        TelegramImportCoordinator(context, token) { cancelled }.fetchAndImport(shortName) { p ->
-                            CoroutineScope(Dispatchers.Main).launch {
-                                val percent = if (p.total == 0) 0 else p.done * 100 / p.total
-                                tgProgress.setProgressCompat(percent, true)
-                                tgProgressText.text = getString(R.string.telegram_progress, p.done + 1, p.total, p.stage)
-                            }
-                        }
-                    }
-                }
-            }
-            setTelegramBusy(false)
-            result.fold(
-                onSuccess = { imported ->
-                    ImageLoaders.clear()
-                    findViewById<com.google.android.material.bottomnavigation.BottomNavigationView>(R.id.main_navigation).selectedItemId = R.id.nav_library
-                    reload()
-                    showResult(getString(R.string.telegram_import_done, imported.manifests.size) +
-                        if (imported.warnings.isEmpty()) "" else "\n" + imported.warnings.joinToString("\n"))
-                },
-                onFailure = { error -> showError(telegramError(error)) }
-            )
-        }
+        if (telegramImports.add(shortName, token, retryId)) {
+            tgInput.setText("")
+        } else showResult(getString(R.string.telegram_task_duplicate))
+    }
+
+    private fun updateTaskSummary() {
+        findViewById<TextView>(R.id.telegram_tasks_summary).text = getString(R.string.telegram_tasks_summary,
+            telegramImports.queue.tasks.value.count { it.active }, telegramImports.workers.threadCount)
     }
 
     private fun telegramError(error: Throwable): String = when (error) {
@@ -321,18 +306,73 @@ class MainActivity : BaseActivity() {
             error.code == 401 -> getString(R.string.telegram_token_invalid)
             error.description.contains("STICKERSET_INVALID", true) || error.code == 404 ->
                 getString(R.string.telegram_pack_not_found)
-            else -> getString(R.string.telegram_network_error, error.description)
+            else -> getString(R.string.telegram_task_network_error)
         }
-        else -> error.message ?: getString(R.string.error_unknown)
+        is TelegramImportCoordinator.ImportFailure, is PackRepository.ImportException -> error.message ?: getString(R.string.error_unknown)
+        else -> getString(R.string.telegram_task_network_error)
     }
 
-    private fun setTelegramBusy(busy: Boolean) {
-        tgFetch.isEnabled = !busy
-        tgInput.isEnabled = !busy
-        tgCancel.visibility = if (busy) View.VISIBLE else View.GONE
-        tgProgress.visibility = if (busy) View.VISIBLE else View.GONE
-        tgProgressText.visibility = if (busy) View.VISIBLE else View.GONE
-        if (!busy) tgProgress.setProgressCompat(0, false)
+    private inner class TelegramTaskAdapter : RecyclerView.Adapter<TelegramTaskAdapter.Holder>() {
+        private var tasks = emptyList<ImportTask<TelegramImportCoordinator.Result>>()
+        inner class Holder(view: View) : RecyclerView.ViewHolder(view) {
+            val name: TextView = view.findViewById(R.id.task_name)
+            val status: TextView = view.findViewById(R.id.task_status)
+            val progress: LinearProgressIndicator = view.findViewById(R.id.task_progress)
+            val action: MaterialButton = view.findViewById(R.id.task_action)
+        }
+        fun submit(items: List<ImportTask<TelegramImportCoordinator.Result>>) { tasks = items; notifyDataSetChanged() }
+        override fun getItemCount() = tasks.size
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = Holder(
+            LayoutInflater.from(parent.context).inflate(R.layout.item_telegram_task, parent, false))
+        override fun onBindViewHolder(holder: Holder, position: Int) {
+            val task = tasks[position]
+            holder.name.text = task.shortName
+            val stage = getString(when (task.progress.stage) {
+                ImportStage.FETCH -> R.string.telegram_stage_fetch
+                ImportStage.DOWNLOAD -> R.string.telegram_stage_download
+                ImportStage.CONVERT -> R.string.telegram_stage_convert
+                ImportStage.SAVE -> R.string.telegram_stage_save
+            })
+            holder.status.text = when (task.state) {
+                ImportTaskState.QUEUED -> getString(R.string.telegram_task_queued)
+                ImportTaskState.RUNNING -> if (task.progress.total == 0) stage else
+                    getString(R.string.telegram_progress, task.progress.done, task.progress.total, stage)
+                ImportTaskState.CANCELLING -> getString(R.string.telegram_task_cancelling)
+                ImportTaskState.CANCELLED -> getString(R.string.telegram_cancelled)
+                ImportTaskState.FAILED -> telegramError(task.error ?: IllegalStateException())
+                ImportTaskState.SUCCEEDED -> getString(R.string.telegram_import_done, task.result?.manifests?.size ?: 0) +
+                    task.result?.warnings.orEmpty().takeIf { it.isNotEmpty() }?.joinToString("\n", prefix = "\n").orEmpty()
+            }
+            holder.progress.visibility = if (task.active) View.VISIBLE else View.GONE
+            if (task.active) {
+                holder.progress.isIndeterminate = task.progress.total == 0
+                if (!holder.progress.isIndeterminate) holder.progress.setProgressCompat(task.progress.done * 100 / task.progress.total, false)
+            }
+            holder.action.isEnabled = true
+            holder.action.visibility = View.VISIBLE
+            when (task.state) {
+                ImportTaskState.QUEUED, ImportTaskState.RUNNING -> {
+                    holder.action.setText(R.string.cancel)
+                    holder.action.visibility = if (task.progress.stage == ImportStage.SAVE) View.GONE else View.VISIBLE
+                    holder.action.contentDescription = getString(R.string.telegram_task_cancel_named, task.shortName)
+                    holder.action.setOnClickListener { telegramImports.queue.cancel(task.id) }
+                }
+                ImportTaskState.CANCELLING -> { holder.action.visibility = View.GONE }
+                ImportTaskState.FAILED, ImportTaskState.CANCELLED -> {
+                    holder.action.setText(R.string.telegram_task_retry)
+                    holder.action.contentDescription = getString(R.string.telegram_task_retry_named, task.shortName)
+                    holder.action.setOnClickListener { startTelegramFetch(task.shortName, task.id) }
+                }
+                ImportTaskState.SUCCEEDED -> {
+                    holder.action.setText(R.string.telegram_task_view)
+                    holder.action.contentDescription = getString(R.string.telegram_task_view_named, task.shortName)
+                    holder.action.setOnClickListener {
+                        findViewById<BottomNavigationView>(R.id.main_navigation).selectedItemId = R.id.nav_library
+                        reload()
+                    }
+                }
+            }
+        }
     }
 
     private fun startExport(pack: PackManifest) {

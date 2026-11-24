@@ -61,12 +61,14 @@ object PackRepository {
         return manifest
     }
 
+    @Synchronized
     fun delete(context: Context, identifier: String): Boolean {
         val dir = packDir(context, identifier)
         return dir.exists() && dir.deleteRecursively()
     }
 
     /** Copy source URI to internal storage first, then parse and convert from the stable copy. */
+    @Synchronized
     fun importFromUri(context: Context, uri: android.net.Uri, suggestedName: String): ImportResult {
         val cache = File(context.cacheDir, "incoming.wastickers")
         context.contentResolver.openInputStream(uri)?.use { input: InputStream ->
@@ -84,6 +86,7 @@ object PackRepository {
         }
     }
 
+    @Synchronized
     fun materialize(
         context: Context,
         parsed: ParsedPack,

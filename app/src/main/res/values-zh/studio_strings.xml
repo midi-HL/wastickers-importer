@@ -50,6 +50,6 @@
 <string name="import_description">打开本地贴纸文件，或从 Telegram 链接导入。</string>
 <string name="import_file_title">从文件导入</string>
 <string name="import_file_note">选择 .wastickers 贴纸包，自动整理到贴纸库。</string>
-<string name="import_telegram_note">粘贴贴纸包链接，即可保存并转换。</string>
+<string name="import_telegram_note">输入贴纸包链接后添加任务。下载和转换期间可继续添加其他链接，在下方单独管理每项任务。</string>
 <string name="pack_details_edit">修改贴纸包信息</string>
 </resources>

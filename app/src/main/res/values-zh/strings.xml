@@ -77,7 +77,7 @@
     <string name="telegram_section_title">从 Telegram 链接拉取</string>
     <string name="telegram_link_hint">贴纸包链接或 short_name</string>
     <string name="telegram_fetch">拉取并转换</string>
-    <string name="telegram_progress">第 %1$d / %2$d 张 · %3$s</string>
+    <string name="telegram_progress">已处理 %1$d / %2$d 张 · %3$s</string>
     <string name="telegram_stage_download">下载中</string>
     <string name="telegram_stage_convert">转换中</string>
     <string name="telegram_cancelled">已取消，缓存已清理</string>
@@ -111,4 +111,21 @@
     <string name="language_system">跟随系统 / System default</string>
     <string name="language_chinese">简体中文</string>
     <string name="language_english">English</string>
+    <string name="telegram_add_task">添加任务</string>
+    <string name="telegram_tasks_summary">%1$d 个任务进行中 · %2$d 线程</string>
+    <string name="telegram_clear_finished">清除已结束任务</string>
+    <string name="telegram_stage_fetch">拉取贴纸包信息</string>
+    <string name="telegram_stage_save">保存贴纸包</string>
+    <string name="telegram_task_queued">等待处理</string>
+    <string name="telegram_task_cancelling">正在取消，等待当前步骤结束…</string>
+    <string name="telegram_task_duplicate">这个贴纸包已在任务列表中处理</string>
+    <string name="telegram_task_retry">重试</string>
+    <string name="telegram_task_view">查看贴纸库</string>
+    <string name="telegram_task_network_error">拉取或网络出错，请检查网络与 Bot Token 后重试</string>
+    <string name="telegram_task_cancel_named">取消 %1$s</string>
+    <string name="telegram_task_retry_named">重试 %1$s</string>
+    <string name="telegram_task_view_named">查看 %1$s 的导入结果</string>
+    <string name="settings_import_threads">导入线程数</string>
+    <string name="settings_import_threads_help">所有 Telegram 任务共用此线程数，拉取、下载和转换可并行。默认 2，最多 6；修改后会调整并发，当前步骤正常结束。动态贴纸会按可用内存控制并发。</string>
+    <string name="settings_import_threads_value">%1$d 线程</string>
 </resources>

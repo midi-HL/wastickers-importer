@@ -58,6 +58,10 @@ jobs:
         if: env.SIGNED != 'true'
         run: |
           echo "### ⚠️ 未配置签名，本次以 debug 包为准" >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$TAG_VERSION" ]; then
+            echo "::error::Tagged releases require all release signing secrets."
+            exit 1
+          fi
           echo "未检测到完整的 KEYSTORE_BASE64 / KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD；release APK 为未签名包，请下载并安装 debug APK。" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verify vendored native sources
@@ -123,6 +127,18 @@ jobs:
             fi
           done
           echo "全部 APK：权限集合恰好只有 INTERNET、ContentProvider 声明存在 ✅" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$SIGNED" = "true" ]; then
+            APKSIGNER="$(dirname "$AAPT2")/apksigner"
+            EXPECTED_CERT="f39610ff5014b83d68b30383e25188bcea47e049016b12ac4c4ddb56f4b4d8e7"
+            for apk in artifacts/release/*.apk; do
+              CERT=$("$APKSIGNER" verify --print-certs "$apk" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')
+              if [ "$CERT" != "$EXPECTED_CERT" ]; then
+                echo "::error file=$apk::Release signing certificate does not match existing installations."
+                exit 1
+              fi
+            done
+            echo "Release APK signatures match the existing application certificate." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Upload device regression test APK
         uses: actions/upload-artifact@v4
@@ -186,7 +202,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" \
-            --title "$GITHUB_REF_NAME" \
-            --generate-notes \
-            artifacts/debug/*.apk artifacts/release/*.apk
+          notes="docs/releases/$GITHUB_REF_NAME.md"
+          if [ -f "$notes" ]; then
+            gh release create "$GITHUB_REF_NAME" \
+              --title "Sticker Studio $VERSION_NAME" \
+              --notes-file "$notes" \
+              artifacts/release/*.apk
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              --title "Sticker Studio $VERSION_NAME" \
+              --generate-notes \
+              artifacts/release/*.apk
+          fi

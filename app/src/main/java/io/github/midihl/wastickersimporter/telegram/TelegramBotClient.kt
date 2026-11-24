@@ -8,15 +8,17 @@ import java.net.URL
 import java.net.URLEncoder
 
 /** T2/T3: HttpURLConnection only; every URL is api.telegram.org and nothing else. */
-class TelegramBotClient(private val token: String) {
+class TelegramBotClient(private val token: String, private val cancelled: () -> Boolean = { false }) : TelegramImportSource {
     private val base = "https://api.telegram.org/bot$token"
+
+    private fun checkCancelled() { if (cancelled()) throw kotlinx.coroutines.CancellationException("cancelled") }
 
     fun getMe(): TelegramBotInfo {
         val json = requestJson("$base/getMe")
         return TelegramBotInfo(json.getJSONObject("result").optString("username", ""))
     }
 
-    fun getStickerSet(shortName: String): TelegramStickerSet {
+    override fun getStickerSet(shortName: String): TelegramStickerSet {
         val encoded = URLEncoder.encode(shortName, Charsets.UTF_8.name())
         val response = requestJson("$base/getStickerSet?name=$encoded")
         return mapStickerSet(response.getJSONObject("result"), shortName)
@@ -60,9 +62,10 @@ class TelegramBotClient(private val token: String) {
         return result.getString("file_path")
     }
 
-    fun downloadFile(fileId: String, destination: File): File {
+    override fun downloadFile(fileId: String, destination: File): File {
         var lastError: Exception? = null
         repeat(2) { attempt ->
+            checkCancelled()
             try {
                 val path = getFilePath(fileId)
                 val encodedPath = path.split('/').joinToString("/") { URLEncoder.encode(it, Charsets.UTF_8.name()).replace("+", "%20") }
@@ -71,17 +74,25 @@ class TelegramBotClient(private val token: String) {
                 connection.connectTimeout = 20_000
                 connection.readTimeout = 60_000
                 connection.instanceFollowRedirects = true
+                try {
+                checkCancelled()
                 connection.connect()
                 val code = connection.responseCode
                 if (code !in 200..299) throw TelegramApiException(code, "HTTP $code")
                 connection.inputStream.use { input ->
-                    FileOutputStream(destination).use { output -> input.copyTo(output) }
+                    FileOutputStream(destination).use { output ->
+                        val buffer = ByteArray(8192)
+                        while (true) { checkCancelled(); val count = input.read(buffer); if (count < 0) break; output.write(buffer, 0, count) }
+                    }
                 }
-                connection.disconnect()
+                checkCancelled()
                 return destination
+                } finally { connection.disconnect() }
             } catch (e: Exception) {
-                lastError = e
                 destination.delete()
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                checkCancelled()
+                lastError = e
                 if (attempt == 1) throw e
             }
         }
@@ -93,16 +104,19 @@ class TelegramBotClient(private val token: String) {
         connection.connectTimeout = 20_000
         connection.readTimeout = 60_000
         connection.requestMethod = "GET"
+        try {
+        checkCancelled()
         connection.connect()
         val code = connection.responseCode
         val body = (if (code in 200..299) connection.inputStream else connection.errorStream)
             ?.bufferedReader()?.use { it.readText() }.orEmpty()
-        connection.disconnect()
+        checkCancelled()
         val json = runCatching { JSONObject(body) }.getOrElse { throw TelegramApiException(code, "Invalid Bot API response") }
         if (!json.optBoolean("ok", false)) {
             val description = json.optString("description", "Bot API error")
             throw TelegramApiException(code, description)
         }
         return json
+        } finally { connection.disconnect() }
     }
 }

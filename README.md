@@ -17,6 +17,7 @@ Sticker Studio is a free, open-source, ad-free Android app for creating, editing
 - **Move and zoom naturally.** Drag or pinch to position a sticker. Zoom in while using a detail tool to work more precisely.
 - **Keep a personal sticker library.** Save drafts, choose covers and emoji, duplicate or reorder stickers, and come back to edit a pack later.
 - **Import packs you already have.** Open or share a `.wastickers` file, or paste a Telegram sticker-pack link to download and convert its stickers. Large imported packs are split into smaller packs.
+- **Import several Telegram packs at once.** Add each link as a separate task and keep adding links while downloads and conversions run. Follow individual progress, cancel or retry a task, and choose 1–6 shared import threads in Settings (default: 2). Animated conversions also respect available memory.
 - **Share across your chat apps.** Add packs through WhatsApp, WhatsApp Business, or Telegram, or export a `.wastickers` file to keep or share.
 - **Choose your appearance.** Switch between light, dark, or system appearance, choose a color palette, or use wallpaper colors on supported devices.
 - **Stay up to date.** Enable automatic checks for stable GitHub Releases, or check manually in Settings. Open an available APK update in your browser, then confirm installation with Android.
@@ -70,8 +71,9 @@ For GIFs and videos, choose a start time and a clip length of up to three second
 
 1. Open [@BotFather](https://t.me/BotFather) in Telegram, send `/newbot`, and follow the prompts to obtain a Bot Token.
 2. In Sticker Studio, open **Settings → Telegram Bot Token**, paste the token, and tap **Save and test connection**.
-3. Open **Import**, paste a `t.me/addstickers/…` link or the pack's short name, then tap **Fetch and convert**.
-4. Open the completed pack from your library. You can add it to WhatsApp, export it, or fetch it again later.
+3. Open **Import**, paste a `t.me/addstickers/…` link or the pack's short name, then tap **Add task**. Add more links to import several packs together.
+4. Follow each task in the import page. Cancel or retry tasks individually; choose **Settings → Import threads** to adjust concurrency.
+5. Open the completed pack from your library. You can add it to WhatsApp, export it, or fetch it again later.
 
 Adding a static pack to the Telegram app does not require a Bot Token. The token is used to download packs through the Telegram import feature.
 

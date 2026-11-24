@@ -50,6 +50,6 @@
 <string name="import_description">Open a local sticker file or import a Telegram pack.</string>
 <string name="import_file_title">Import a file</string>
 <string name="import_file_note">Choose a .wastickers pack to add it to your library.</string>
-<string name="import_telegram_note">Paste a sticker pack link to save and convert it.</string>
+<string name="import_telegram_note">Add a sticker pack link as a task. Add more links while downloads and conversions run; manage each task below.</string>
 <string name="pack_details_edit">Edit pack details</string>
 </resources>
